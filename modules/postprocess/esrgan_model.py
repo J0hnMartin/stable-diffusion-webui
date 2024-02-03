@@ -1,3 +1,4 @@
+<<<<<<< HEAD:modules/postprocess/esrgan_model.py
 import numpy as np
 import torch
 from PIL import Image
@@ -6,6 +7,18 @@ import modules.postprocess.esrgan_model_arch as arch
 from modules import images, devices
 from modules.upscaler import Upscaler, UpscalerData, compile_upscaler
 from modules.shared import opts, log, console
+=======
+import sys
+
+import numpy as np
+import torch
+from PIL import Image
+
+import modules.esrgan_model_arch as arch
+from modules import modelloader, images, devices
+from modules.shared import opts
+from modules.upscaler import Upscaler, UpscalerData
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/esrgan_model.py
 
 
 def mod2normal(state_dict):
@@ -121,12 +134,30 @@ class UpscalerESRGAN(Upscaler):
         self.name = "ESRGAN"
         self.user_path = dirname
         super().__init__()
+<<<<<<< HEAD:modules/postprocess/esrgan_model.py
         self.scalers = self.find_scalers()
         self.models = {}
+=======
+        model_paths = self.find_models(ext_filter=[".pt", ".pth"])
+        scalers = []
+        if len(model_paths) == 0:
+            scaler_data = UpscalerData(self.model_name, self.model_url, self, 4)
+            scalers.append(scaler_data)
+        for file in model_paths:
+            if file.startswith("http"):
+                name = self.model_name
+            else:
+                name = modelloader.friendly_name(file)
+
+            scaler_data = UpscalerData(name, file, self, 4)
+            self.scalers.append(scaler_data)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/esrgan_model.py
 
     def do_upscale(self, img, selected_model):
-        model = self.load_model(selected_model)
-        if model is None:
+        try:
+            model = self.load_model(selected_model)
+        except Exception as e:
+            print(f"Unable to load ESRGAN model {selected_model}: {e}", file=sys.stderr)
             return img
         model.to(devices.device_esrgan)
         img = esrgan_upscale(model, img)
@@ -137,6 +168,7 @@ class UpscalerESRGAN(Upscaler):
         return img
 
     def load_model(self, path: str):
+<<<<<<< HEAD:modules/postprocess/esrgan_model.py
         info: UpscalerData = self.find_model(path)
         if info is None:
             return
@@ -145,6 +177,19 @@ class UpscalerESRGAN(Upscaler):
             return self.models[info.local_data_path]
         state_dict = torch.load(info.local_data_path, map_location='cpu' if devices.device_esrgan.type == 'mps' else None)
         log.info(f"Upscaler loaded: type={self.name} model={info.local_data_path}")
+=======
+        if path.startswith("http"):
+            # TODO: this doesn't use `path` at all?
+            filename = modelloader.load_file_from_url(
+                url=self.model_url,
+                model_dir=self.model_download_path,
+                file_name=f"{self.model_name}.pth",
+            )
+        else:
+            filename = path
+
+        state_dict = torch.load(filename, map_location='cpu' if devices.device_esrgan.type == 'mps' else None)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/esrgan_model.py
 
         if "params_ema" in state_dict:
             state_dict = state_dict["params_ema"]

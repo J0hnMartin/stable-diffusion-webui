@@ -2,9 +2,12 @@ import os
 import torch
 from torch import nn
 from modules import devices, paths, shared
+<<<<<<< HEAD
 
+=======
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
-sd_vae_approx_model = None
+sd_vae_approx_models = {}
 
 
 class VAEApprox(nn.Module):
@@ -32,6 +35,7 @@ class VAEApprox(nn.Module):
         return x
 
 
+<<<<<<< HEAD
 def nn_approximation(sample): # Approximate NN
     global sd_vae_approx_model # pylint: disable=global-statement
     if sd_vae_approx_model is None:
@@ -52,10 +56,41 @@ def nn_approximation(sample): # Approximate NN
     except Exception as e:
         shared.log.error(f'Decode approximate: {e}')
         return sample
+=======
+def download_model(model_path, model_url):
+    if not os.path.exists(model_path):
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+
+        print(f'Downloading VAEApprox model to: {model_path}')
+        torch.hub.download_url_to_file(model_url, model_path)
+
+
+def model():
+    model_name = "vaeapprox-sdxl.pt" if getattr(shared.sd_model, 'is_sdxl', False) else "model.pt"
+    loaded_model = sd_vae_approx_models.get(model_name)
+
+    if loaded_model is None:
+        model_path = os.path.join(paths.models_path, "VAE-approx", model_name)
+        if not os.path.exists(model_path):
+            model_path = os.path.join(paths.script_path, "models", "VAE-approx", model_name)
+
+        if not os.path.exists(model_path):
+            model_path = os.path.join(paths.models_path, "VAE-approx", model_name)
+            download_model(model_path, 'https://github.com/AUTOMATIC1111/stable-diffusion-webui/releases/download/v1.0.0-pre/' + model_name)
+
+        loaded_model = VAEApprox()
+        loaded_model.load_state_dict(torch.load(model_path, map_location='cpu' if devices.device.type != 'cuda' else None))
+        loaded_model.eval()
+        loaded_model.to(devices.device, devices.dtype)
+        sd_vae_approx_models[model_name] = loaded_model
+
+    return loaded_model
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 def cheap_approximation(sample): # Approximate simple
     # https://discuss.huggingface.co/t/decoding-latents-to-rgb-without-upscaling/23204/2
+<<<<<<< HEAD
     if shared.sd_model_type == "sdxl":
         simple_weights = torch.tensor([
             [0.4543,-0.2868, 0.1566,-0.4748],
@@ -76,3 +111,26 @@ def cheap_approximation(sample): # Approximate simple
     except Exception as e:
         shared.log.error(f'Decode simple: {e}')
         return sample
+=======
+
+    if shared.sd_model.is_sdxl:
+        coeffs = [
+            [ 0.3448,  0.4168,  0.4395],
+            [-0.1953, -0.0290,  0.0250],
+            [ 0.1074,  0.0886, -0.0163],
+            [-0.3730, -0.2499, -0.2088],
+        ]
+    else:
+        coeffs = [
+            [ 0.298,  0.207,  0.208],
+            [ 0.187,  0.286,  0.173],
+            [-0.158,  0.189,  0.264],
+            [-0.184, -0.271, -0.473],
+        ]
+
+    coefs = torch.tensor(coeffs).to(sample.device)
+
+    x_sample = torch.einsum("...lxy,lr -> ...rxy", sample, coefs)
+
+    return x_sample
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e

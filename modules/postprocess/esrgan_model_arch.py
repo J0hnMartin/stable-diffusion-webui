@@ -437,11 +437,19 @@ def conv_block(in_nc, out_nc, kernel_size, stride=1, dilation=1, groups=1, bias=
     padding = padding if pad_type == 'zero' else 0
 
     if convtype=='PartialConv2D':
+<<<<<<< HEAD:modules/postprocess/esrgan_model_arch.py
         from torchvision.ops import PartialConv2d
         c = PartialConv2d(in_nc, out_nc, kernel_size=kernel_size, stride=stride, padding=padding,
                dilation=dilation, bias=bias, groups=groups)
     elif convtype=='DeformConv2D':
         from torchvision.ops import DeformConv2d
+=======
+        from torchvision.ops import PartialConv2d  # this is definitely not going to work, but PartialConv2d doesn't work anyway and this shuts up static analyzer
+        c = PartialConv2d(in_nc, out_nc, kernel_size=kernel_size, stride=stride, padding=padding,
+               dilation=dilation, bias=bias, groups=groups)
+    elif convtype=='DeformConv2D':
+        from torchvision.ops import DeformConv2d  # not tested
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/esrgan_model_arch.py
         c = DeformConv2d(in_nc, out_nc, kernel_size=kernel_size, stride=stride, padding=padding,
                dilation=dilation, bias=bias, groups=groups)
     elif convtype=='Conv3D':

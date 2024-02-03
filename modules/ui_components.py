@@ -20,6 +20,18 @@ class ToolButton(FormComponent, gr.Button):
         return "button"
 
 
+class ResizeHandleRow(gr.Row):
+    """Same as gr.Row but fits inside gradio forms"""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.elem_classes.append("resize-handle-row")
+
+    def get_block_name(self):
+        return "row"
+
+
 class FormRow(FormComponent, gr.Row):
     """Same as gr.Row but fits inside gradio forms"""
 
@@ -35,7 +47,7 @@ class FormColumn(FormComponent, gr.Column):
 
 
 class FormGroup(FormComponent, gr.Group):
-    """Same as gr.Row but fits inside gradio forms"""
+    """Same as gr.Group but fits inside gradio forms"""
 
     def get_block_name(self):
         return "group"
@@ -75,8 +87,15 @@ class DropdownEditable(FormComponent, gr.Dropdown):
 
 class InputAccordion(gr.Checkbox):
     """A gr.Accordion that can be used as an input - returns True if open, False if closed.
+<<<<<<< HEAD
     Actaully just a hidden checkbox, but creates an accordion that follows and is followed by the state of the checkbox.
     """
+=======
+
+    Actaully just a hidden checkbox, but creates an accordion that follows and is followed by the state of the checkbox.
+    """
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     global_index = 0
 
     def __init__(self, value, **kwargs):
@@ -84,9 +103,22 @@ class InputAccordion(gr.Checkbox):
         if self.accordion_id is None:
             self.accordion_id = f"input-accordion-{InputAccordion.global_index}"
             InputAccordion.global_index += 1
+<<<<<<< HEAD
         kwargs_checkbox = {**kwargs, "elem_id": f"{self.accordion_id}-checkbox", "visible": False}
         super().__init__(value, **kwargs_checkbox)
         self.change(fn=None, _js='function(checked){ inputAccordionChecked("' + self.accordion_id + '", checked); }', inputs=[self])
+=======
+
+        kwargs_checkbox = {
+            **kwargs,
+            "elem_id": f"{self.accordion_id}-checkbox",
+            "visible": False,
+        }
+        super().__init__(value, **kwargs_checkbox)
+
+        self.change(fn=None, _js='function(checked){ inputAccordionChecked("' + self.accordion_id + '", checked); }', inputs=[self])
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         kwargs_accordion = {
             **kwargs,
             "elem_id": self.accordion_id,
@@ -98,14 +130,28 @@ class InputAccordion(gr.Checkbox):
 
     def extra(self):
         """Allows you to put something into the label of the accordion.
+<<<<<<< HEAD
         Use it like this:
+=======
+
+        Use it like this:
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         ```
         with InputAccordion(False, label="Accordion") as acc:
             with acc.extra():
                 FormHTML(value="hello", min_width=0)
+<<<<<<< HEAD
             ...
         ```
         """
+=======
+
+            ...
+        ```
+        """
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         return gr.Column(elem_id=self.accordion_id + '-extra', elem_classes='input-accordion-extra', min_width=0)
 
     def __enter__(self):
@@ -118,6 +164,7 @@ class InputAccordion(gr.Checkbox):
     def get_block_name(self):
         return "checkbox"
 
+<<<<<<< HEAD
 
 class ResizeHandleRow(gr.Row):
     """Same as gr.Row but fits inside gradio forms"""
@@ -128,3 +175,5 @@ class ResizeHandleRow(gr.Row):
 
     def get_block_name(self):
         return "row"
+=======
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e

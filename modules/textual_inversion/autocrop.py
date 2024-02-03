@@ -1,8 +1,16 @@
 import os
 import cv2
 import requests
+<<<<<<< HEAD
 import numpy as np
 from PIL import ImageDraw
+=======
+import os
+import numpy as np
+from PIL import ImageDraw
+from modules import paths_internal
+from pkg_resources import parse_version
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 GREEN = "#0F0"
 BLUE = "#00F"
@@ -65,8 +73,14 @@ def crop_image(im, settings):
         results.append(im_debug)
         if settings.destop_view_image:
             im_debug.show()
+<<<<<<< HEAD
 
     return results
+=======
+
+    return results
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 def focal_point(im, settings):
     corner_points = image_corner_points(im, settings) if settings.corner_points_weight > 0 else []
@@ -76,6 +90,7 @@ def focal_point(im, settings):
     pois = []
 
     weight_pref_total = 0
+<<<<<<< HEAD
     if len(corner_points) > 0:
         weight_pref_total += settings.corner_points_weight
     if len(entropy_points) > 0:
@@ -85,18 +100,37 @@ def focal_point(im, settings):
 
     corner_centroid = None
     if len(corner_points) > 0:
+=======
+    if corner_points:
+        weight_pref_total += settings.corner_points_weight
+    if entropy_points:
+        weight_pref_total += settings.entropy_points_weight
+    if face_points:
+        weight_pref_total += settings.face_points_weight
+
+    corner_centroid = None
+    if corner_points:
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         corner_centroid = centroid(corner_points)
         corner_centroid.weight = settings.corner_points_weight / weight_pref_total
         pois.append(corner_centroid)
 
     entropy_centroid = None
+<<<<<<< HEAD
     if len(entropy_points) > 0:
+=======
+    if entropy_points:
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         entropy_centroid = centroid(entropy_points)
         entropy_centroid.weight = settings.entropy_points_weight / weight_pref_total
         pois.append(entropy_centroid)
 
     face_centroid = None
+<<<<<<< HEAD
     if len(face_points) > 0:
+=======
+    if face_points:
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         face_centroid = centroid(face_points)
         face_centroid.weight = settings.face_points_weight / weight_pref_total
         pois.append(face_centroid)
@@ -109,7 +143,11 @@ def focal_point(im, settings):
         if corner_centroid is not None:
             color = BLUE
             box = corner_centroid.bounding(max_size * corner_centroid.weight)
+<<<<<<< HEAD
             d.text((box[0], box[1]-15), f"Edge: {corner_centroid.weight:.02f}", fill=color)
+=======
+            d.text((box[0], box[1] - 15), f"Edge: {corner_centroid.weight:.02f}", fill=color)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             d.ellipse(box, outline=color)
             if len(corner_points) > 1:
                 for f in corner_points:
@@ -117,7 +155,11 @@ def focal_point(im, settings):
         if entropy_centroid is not None:
             color = "#ff0"
             box = entropy_centroid.bounding(max_size * entropy_centroid.weight)
+<<<<<<< HEAD
             d.text((box[0], box[1]-15), f"Entropy: {entropy_centroid.weight:.02f}", fill=color)
+=======
+            d.text((box[0], box[1] - 15), f"Entropy: {entropy_centroid.weight:.02f}", fill=color)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             d.ellipse(box, outline=color)
             if len(entropy_points) > 1:
                 for f in entropy_points:
@@ -125,7 +167,11 @@ def focal_point(im, settings):
         if face_centroid is not None:
             color = RED
             box = face_centroid.bounding(max_size * face_centroid.weight)
+<<<<<<< HEAD
             d.text((box[0], box[1]-15), f"Face: {face_centroid.weight:.02f}", fill=color)
+=======
+            d.text((box[0], box[1] - 15), f"Face: {face_centroid.weight:.02f}", fill=color)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             d.ellipse(box, outline=color)
             if len(face_points) > 1:
                 for f in face_points:
@@ -139,12 +185,21 @@ def focal_point(im, settings):
 def image_face_points(im, settings):
     if settings.dnn_model_path is not None:
         detector = cv2.FaceDetectorYN.create(
+<<<<<<< HEAD
                 settings.dnn_model_path,
                 "",
                 (im.width, im.height),
                 0.9, # score threshold
                 0.3, # nms threshold
                 5000 # keep top k before nms
+=======
+            settings.dnn_model_path,
+            "",
+            (im.width, im.height),
+            0.9,  # score threshold
+            0.3,  # nms threshold
+            5000  # keep top k before nms
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         )
         faces = detector.detect(np.array(im))
         results = []
@@ -156,10 +211,17 @@ def image_face_points(im, settings):
                 h = face[3]
                 results.append(
                     PointOfInterest(
+<<<<<<< HEAD
                         int(x + (w * 0.5)), # face focus left/right is center
                         int(y + (h * 0.33)), # face focus up/down is close to the top of the head
                         size = w,
                         weight = 1/len(faces[1])
+=======
+                        int(x + (w * 0.5)),  # face focus left/right is center
+                        int(y + (h * 0.33)),  # face focus up/down is close to the top of the head
+                        size=w,
+                        weight=1 / len(faces[1])
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
                     )
                 )
         return results
@@ -168,6 +230,7 @@ def image_face_points(im, settings):
         gray = cv2.cvtColor(np_im, cv2.COLOR_BGR2GRAY)
 
         tries = [
+<<<<<<< HEAD
             [ f'{cv2.data.haarcascades}haarcascade_eye.xml', 0.01 ],
             [ f'{cv2.data.haarcascades}haarcascade_frontalface_default.xml', 0.05 ],
             [ f'{cv2.data.haarcascades}haarcascade_profileface.xml', 0.05 ],
@@ -189,6 +252,31 @@ def image_face_points(im, settings):
             if len(faces) > 0:
                 rects = [[f[0], f[1], f[0] + f[2], f[1] + f[3]] for f in faces]
                 return [PointOfInterest((r[0] +r[2]) // 2, (r[1] + r[3]) // 2, size=abs(r[0]-r[2]), weight=1/len(rects)) for r in rects]
+=======
+            [f'{cv2.data.haarcascades}haarcascade_eye.xml', 0.01],
+            [f'{cv2.data.haarcascades}haarcascade_frontalface_default.xml', 0.05],
+            [f'{cv2.data.haarcascades}haarcascade_profileface.xml', 0.05],
+            [f'{cv2.data.haarcascades}haarcascade_frontalface_alt.xml', 0.05],
+            [f'{cv2.data.haarcascades}haarcascade_frontalface_alt2.xml', 0.05],
+            [f'{cv2.data.haarcascades}haarcascade_frontalface_alt_tree.xml', 0.05],
+            [f'{cv2.data.haarcascades}haarcascade_eye_tree_eyeglasses.xml', 0.05],
+            [f'{cv2.data.haarcascades}haarcascade_upperbody.xml', 0.05]
+        ]
+        for t in tries:
+            classifier = cv2.CascadeClassifier(t[0])
+            minsize = int(min(im.width, im.height) * t[1])  # at least N percent of the smallest side
+            try:
+                faces = classifier.detectMultiScale(gray, scaleFactor=1.1,
+                                                    minNeighbors=7, minSize=(minsize, minsize),
+                                                    flags=cv2.CASCADE_SCALE_IMAGE)
+            except Exception:
+                continue
+
+            if faces:
+                rects = [[f[0], f[1], f[0] + f[2], f[1] + f[3]] for f in faces]
+                return [PointOfInterest((r[0] + r[2]) // 2, (r[1] + r[3]) // 2, size=abs(r[0] - r[2]),
+                                        weight=1 / len(rects)) for r in rects]
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     return []
 
 
@@ -197,16 +285,24 @@ def image_corner_points(im, settings): # pylint: disable=unused-argument
 
     # naive attempt at preventing focal points from collecting at watermarks near the bottom
     gd = ImageDraw.Draw(grayscale)
-    gd.rectangle([0, im.height*.9, im.width, im.height], fill="#999")
+    gd.rectangle([0, im.height * .9, im.width, im.height], fill="#999")
 
     np_im = np.array(grayscale)
 
     points = cv2.goodFeaturesToTrack(
+<<<<<<< HEAD
             np_im,
             maxCorners=100,
             qualityLevel=0.04,
             minDistance=min(grayscale.width, grayscale.height)*0.06,
             useHarrisDetector=False,
+=======
+        np_im,
+        maxCorners=100,
+        qualityLevel=0.04,
+        minDistance=min(grayscale.width, grayscale.height) * 0.06,
+        useHarrisDetector=False,
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     )
 
     if points is None:
@@ -215,7 +311,11 @@ def image_corner_points(im, settings): # pylint: disable=unused-argument
     focal_points = []
     for point in points:
         x, y = point.ravel()
+<<<<<<< HEAD
         focal_points.append(PointOfInterest(x, y, size=4, weight=1/len(points)))
+=======
+        focal_points.append(PointOfInterest(x, y, size=4, weight=1 / len(points)))
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
     return focal_points
 
@@ -239,15 +339,19 @@ def image_entropy_points(im, settings):
         crop = im.crop(tuple(crop_current))
         e = image_entropy(crop)
 
+<<<<<<< HEAD
         if e > e_max:
+=======
+        if (e > e_max):
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             e_max = e
             crop_best = list(crop_current)
 
         crop_current[move_idx[0]] += 4
         crop_current[move_idx[1]] += 4
 
-    x_mid = int(crop_best[0] + settings.crop_width/2)
-    y_mid = int(crop_best[1] + settings.crop_height/2)
+    x_mid = int(crop_best[0] + settings.crop_width / 2)
+    y_mid = int(crop_best[1] + settings.crop_height / 2)
 
     return [PointOfInterest(x_mid, y_mid, size=25, weight=1.0)]
 
@@ -260,10 +364,15 @@ def image_entropy(im):
     hist = hist[hist > 0]
     return -np.log2(hist / hist.sum()).sum()
 
+
 def centroid(pois):
     x = [poi.x for poi in pois]
     y = [poi.y for poi in pois]
+<<<<<<< HEAD
     return PointOfInterest(sum(x)/len(pois), sum(y)/len(pois))
+=======
+    return PointOfInterest(sum(x) / len(pois), sum(y) / len(pois))
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 def poi_average(pois, settings): # pylint: disable=unused-argument
@@ -292,6 +401,7 @@ def is_square(w, h):
     return w == h
 
 
+<<<<<<< HEAD
 def download_and_cache_models(dirname):
     download_url = 'https://github.com/opencv/opencv_zoo/blob/91fb0290f50896f38a0ab1e558b74b16bc009428/models/face_detection_yunet/face_detection_yunet_2022mar.onnx?raw=true'
     model_file_name = 'face_detection_yunet.onnx'
@@ -307,6 +417,25 @@ def download_and_cache_models(dirname):
     if os.path.exists(cache_file):
         return cache_file
     return None
+=======
+model_dir_opencv = os.path.join(paths_internal.models_path, 'opencv')
+if parse_version(cv2.__version__) >= parse_version('4.8'):
+    model_file_path = os.path.join(model_dir_opencv, 'face_detection_yunet_2023mar.onnx')
+    model_url = 'https://github.com/opencv/opencv_zoo/blob/b6e370b10f641879a87890d44e42173077154a05/models/face_detection_yunet/face_detection_yunet_2023mar.onnx?raw=true'
+else:
+    model_file_path = os.path.join(model_dir_opencv, 'face_detection_yunet.onnx')
+    model_url = 'https://github.com/opencv/opencv_zoo/blob/91fb0290f50896f38a0ab1e558b74b16bc009428/models/face_detection_yunet/face_detection_yunet_2022mar.onnx?raw=true'
+
+
+def download_and_cache_models():
+    if not os.path.exists(model_file_path):
+        os.makedirs(model_dir_opencv, exist_ok=True)
+        print(f"downloading face detection model from '{model_url}' to '{model_file_path}'")
+        response = requests.get(model_url)
+        with open(model_file_path, "wb") as f:
+            f.write(response.content)
+    return model_file_path
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 class PointOfInterest:
@@ -318,10 +447,17 @@ class PointOfInterest:
 
     def bounding(self, size):
         return [
+<<<<<<< HEAD
             self.x - size//2,
             self.y - size//2,
             self.x + size//2,
             self.y + size//2
+=======
+            self.x - size // 2,
+            self.y - size // 2,
+            self.x + size // 2,
+            self.y + size // 2
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         ]
 
 

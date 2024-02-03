@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 setuptools
 addict
 aenum
@@ -16,10 +17,24 @@ gdown
 gfpgan
 GitPython
 httpcore
+=======
+GitPython
+Pillow
+accelerate
+
+basicsr
+blendmodes
+clean-fid
+einops
+fastapi>=0.90.1
+gfpgan
+gradio==3.41.2
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 inflection
 jsonmerge
 kornia
 lark
+<<<<<<< HEAD
 lmdb
 lpips
 omegaconf
@@ -70,3 +85,24 @@ timm==0.9.12
 pydantic==1.10.13
 typing-extensions==4.9.0
 peft
+=======
+numpy
+omegaconf
+open-clip-torch
+
+piexif
+psutil
+pytorch_lightning
+realesrgan
+requests
+resize-right
+
+safetensors
+scikit-image>=0.19
+timm
+tomesd
+torch
+torchdiffeq
+torchsde
+transformers==4.30.2
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e

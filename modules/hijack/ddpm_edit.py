@@ -24,10 +24,15 @@ from pytorch_lightning.utilities.distributed import rank_zero_only
 from ldm.util import log_txt_as_img, exists, default, ismap, isimage, mean_flat, count_params, instantiate_from_config
 from ldm.modules.ema import LitEma
 from ldm.modules.distributions.distributions import normal_kl, DiagonalGaussianDistribution
-from ldm.models.autoencoder import VQModelInterface, IdentityFirstStage, AutoencoderKL
+from ldm.models.autoencoder import IdentityFirstStage, AutoencoderKL
 from ldm.modules.diffusionmodules.util import make_beta_schedule, extract_into_tensor, noise_like
 from ldm.models.diffusion.ddim import DDIMSampler
 
+try:
+    from ldm.models.autoencoder import VQModelInterface
+except Exception:
+    class VQModelInterface:
+        pass
 
 __conditioning_keys__ = {'concat': 'c_concat',
                          'crossattn': 'c_crossattn',
@@ -195,6 +200,10 @@ class DDPM(pl.LightningModule):
 
     def init_from_ckpt(self, path, ignore_keys=None, only_model=False):
         ignore_keys = ignore_keys or []
+<<<<<<< HEAD:modules/hijack/ddpm_edit.py
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/models/diffusion/ddpm_edit.py
         sd = torch.load(path, map_location="cpu")
         if "state_dict" in list(sd.keys()):
             sd = sd["state_dict"]
@@ -228,9 +237,9 @@ class DDPM(pl.LightningModule):
         missing, unexpected = self.load_state_dict(sd, strict=False) if not only_model else self.model.load_state_dict(
             sd, strict=False)
         print(f"Restored from {path} with {len(missing)} missing and {len(unexpected)} unexpected keys")
-        if len(missing) > 0:
+        if missing:
             print(f"Missing Keys: {missing}")
-        if len(unexpected) > 0:
+        if unexpected:
             print(f"Unexpected Keys: {unexpected}")
 
     def q_mean_variance(self, x_start, t):
@@ -1288,7 +1297,7 @@ class LatentDiffusion(DDPM):
 
         if plot_diffusion_rows:
             # get diffusion row
-            diffusion_row = list()
+            diffusion_row = []
             z_start = z[:n_row]
             for t in range(self.num_timesteps):
                 if t % self.log_every_t == 0 or t == self.num_timesteps - 1:

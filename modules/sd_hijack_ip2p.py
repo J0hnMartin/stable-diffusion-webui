@@ -1,4 +1,8 @@
 import os.path
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 def should_hijack_ip2p(checkpoint_info):
     from modules import sd_models_config

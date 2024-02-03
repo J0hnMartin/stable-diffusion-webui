@@ -1,5 +1,7 @@
+from __future__ import annotations
 import base64
 import io
+<<<<<<< HEAD
 import os
 import re
 import json
@@ -8,16 +10,29 @@ import gradio as gr
 from modules.paths import data_path
 from modules import shared, ui_tempdir, script_callbacks, images
 
+=======
+import json
+import os
+import re
 
-re_param_code = r'\s*([\w ]+):\s*("(?:\\"[^,]|\\"|\\|[^\"])+"|[^,]*)(?:,|$)'
+import gradio as gr
+from modules.paths import data_path
+from modules import shared, ui_tempdir, script_callbacks, processing
+from PIL import Image
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
+
+re_param_code = r'\s*(\w[\w \-/]+):\s*("(?:\\.|[^\\"])+"|[^,]*)(?:,|$)'
 re_param = re.compile(re_param_code)
 re_imagesize = re.compile(r"^(\d+)x(\d+)$")
 re_hypernet_hash = re.compile("\(([0-9a-f]+)\)$") # pylint: disable=anomalous-backslash-in-string
 type_of_gr_update = type(gr.update())
+<<<<<<< HEAD
 paste_fields = {}
 registered_param_bindings = []
 debug = shared.log.trace if os.environ.get('SD_PASTE_DEBUG', None) is not None else lambda *args, **kwargs: None
 debug('Trace: PASTE')
+=======
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 class ParamBinding:
@@ -29,11 +44,19 @@ class ParamBinding:
         self.source_tabname = source_tabname
         self.override_settings_component = override_settings_component
         self.paste_field_names = paste_field_names or []
+<<<<<<< HEAD
         debug(f'ParamBinding: {vars(self)}')
+=======
+
+
+paste_fields: dict[str, dict] = {}
+registered_param_bindings: list[ParamBinding] = []
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 def reset():
     paste_fields.clear()
+    registered_param_bindings.clear()
 
 
 def quote(text):
@@ -41,10 +64,19 @@ def quote(text):
         return text
     return json.dumps(text, ensure_ascii=False)
 
+<<<<<<< HEAD
+=======
+    return json.dumps(text, ensure_ascii=False)
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 def unquote(text):
     if len(text) == 0 or text[0] != '"' or text[-1] != '"':
         return text
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     try:
         return json.loads(text)
     except Exception:
@@ -54,11 +86,17 @@ def unquote(text):
 def image_from_url_text(filedata):
     if filedata is None:
         return None
+<<<<<<< HEAD
     if type(filedata) == list and len(filedata) > 0 and type(filedata[0]) == dict and filedata[0].get("is_file", False):
+=======
+
+    if type(filedata) == list and filedata and type(filedata[0]) == dict and filedata[0].get("is_file", False):
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         filedata = filedata[0]
     if type(filedata) == dict and filedata.get("is_file", False):
         filename = filedata["name"]
         is_in_right_dir = ui_tempdir.check_tmp_file(shared.demo, filename)
+<<<<<<< HEAD
         if is_in_right_dir:
             filename = filename.rsplit('?', 1)[0]
             if not os.path.exists(filename):
@@ -73,6 +111,13 @@ def image_from_url_text(filedata):
         else:
             shared.log.warning(f'File access denied: {filename}')
             return None
+=======
+        assert is_in_right_dir, 'trying to open image file outside of allowed directories'
+
+        filename = filename.rsplit('?', 1)[0]
+        return Image.open(filename)
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     if type(filedata) == list:
         if len(filedata) == 0:
             return None
@@ -134,7 +179,6 @@ def register_paste_params_button(binding: ParamBinding):
 
 
 def connect_paste_params_buttons():
-    binding: ParamBinding
     for binding in registered_param_bindings:
         if binding.tabname not in paste_fields:
             debug(f"Not not registered: tab={binding.tabname}")
@@ -167,12 +211,18 @@ def connect_paste_params_buttons():
                 fn=lambda *x: x,
                 inputs=[field for field, name in paste_fields[binding.source_tabname]["fields"] if name in paste_field_names],
                 outputs=[field for field, name in fields if name in paste_field_names],
+                show_progress=False,
             )
         binding.paste_button.click(
             fn=None,
             _js=f"switch_to_{binding.tabname}",
+<<<<<<< HEAD
             inputs=[],
             outputs=[],
+=======
+            inputs=None,
+            outputs=None,
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             show_progress=False,
         )
 
@@ -188,6 +238,7 @@ def send_image_and_dimensions(x):
     return img, w, h
 
 
+<<<<<<< HEAD
 def find_hypernetwork_key(hypernet_name, hypernet_hash=None):
     """Determines the config parameter name to use for the hypernet based on the parameters in the infotext.
     Example: an infotext provides "Hypernet: ke-ta" and "Hypernet hash: 1234abcd". For the "Hypernet" config
@@ -208,10 +259,43 @@ def find_hypernetwork_key(hypernet_name, hypernet_hash=None):
                 return hypernet_key
 
     return None
+=======
+def restore_old_hires_fix_params(res):
+    """for infotexts that specify old First pass size parameter, convert it into
+    width, height, and hr scale"""
+
+    firstpass_width = res.get('First pass size-1', None)
+    firstpass_height = res.get('First pass size-2', None)
+
+    if shared.opts.use_old_hires_fix_width_height:
+        hires_width = int(res.get("Hires resize-1", 0))
+        hires_height = int(res.get("Hires resize-2", 0))
+
+        if hires_width and hires_height:
+            res['Size-1'] = hires_width
+            res['Size-2'] = hires_height
+            return
+
+    if firstpass_width is None or firstpass_height is None:
+        return
+
+    firstpass_width, firstpass_height = int(firstpass_width), int(firstpass_height)
+    width = int(res.get("Size-1", 512))
+    height = int(res.get("Size-2", 512))
+
+    if firstpass_width == 0 or firstpass_height == 0:
+        firstpass_width, firstpass_height = processing.old_hires_fix_first_pass_dimensions(width, height)
+
+    res['Size-1'] = firstpass_width
+    res['Size-2'] = firstpass_height
+    res['Hires resize-1'] = width
+    res['Hires resize-2'] = height
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 def parse_generation_parameters(x: str):
     res = {}
+<<<<<<< HEAD
     if x is None:
         return res
     remaining = x.replace('\n', ' ').strip()
@@ -232,6 +316,45 @@ def parse_generation_parameters(x: str):
         try:
             if v[0] == '"' and v[-1] == '"':
                 v = unquote(v)
+=======
+
+    prompt = ""
+    negative_prompt = ""
+
+    done_with_prompt = False
+
+    *lines, lastline = x.strip().split("\n")
+    if len(re_param.findall(lastline)) < 3:
+        lines.append(lastline)
+        lastline = ''
+
+    for line in lines:
+        line = line.strip()
+        if line.startswith("Negative prompt:"):
+            done_with_prompt = True
+            line = line[16:].strip()
+        if done_with_prompt:
+            negative_prompt += ("" if negative_prompt == "" else "\n") + line
+        else:
+            prompt += ("" if prompt == "" else "\n") + line
+
+    if shared.opts.infotext_styles != "Ignore":
+        found_styles, prompt, negative_prompt = shared.prompt_styles.extract_styles_from_prompt(prompt, negative_prompt)
+
+        if shared.opts.infotext_styles == "Apply":
+            res["Styles array"] = found_styles
+        elif shared.opts.infotext_styles == "Apply if any" and found_styles:
+            res["Styles array"] = found_styles
+
+    res["Prompt"] = prompt
+    res["Negative prompt"] = negative_prompt
+
+    for k, v in re_param.findall(lastline):
+        try:
+            if v[0] == '"' and v[-1] == '"':
+                v = unquote(v)
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             m = re_imagesize.match(v)
             if m is not None:
                 res[f"{k}-1"] = m.group(1)
@@ -239,16 +362,72 @@ def parse_generation_parameters(x: str):
             else:
                 res[k] = v
         except Exception:
+<<<<<<< HEAD
             pass
     if res.get('VAE', None) == 'TAESD':
         res["Full quality"] = False
     debug(f"Parse prompt: {res}")
+=======
+            print(f"Error parsing \"{k}: {v}\"")
+
+    # Missing CLIP skip means it was set to 1 (the default)
+    if "Clip skip" not in res:
+        res["Clip skip"] = "1"
+
+    hypernet = res.get("Hypernet", None)
+    if hypernet is not None:
+        res["Prompt"] += f"""<hypernet:{hypernet}:{res.get("Hypernet strength", "1.0")}>"""
+
+    if "Hires resize-1" not in res:
+        res["Hires resize-1"] = 0
+        res["Hires resize-2"] = 0
+
+    if "Hires sampler" not in res:
+        res["Hires sampler"] = "Use same sampler"
+
+    if "Hires checkpoint" not in res:
+        res["Hires checkpoint"] = "Use same checkpoint"
+
+    if "Hires prompt" not in res:
+        res["Hires prompt"] = ""
+
+    if "Hires negative prompt" not in res:
+        res["Hires negative prompt"] = ""
+
+    restore_old_hires_fix_params(res)
+
+    # Missing RNG means the default was set, which is GPU RNG
+    if "RNG" not in res:
+        res["RNG"] = "GPU"
+
+    if "Schedule type" not in res:
+        res["Schedule type"] = "Automatic"
+
+    if "Schedule max sigma" not in res:
+        res["Schedule max sigma"] = 0
+
+    if "Schedule min sigma" not in res:
+        res["Schedule min sigma"] = 0
+
+    if "Schedule rho" not in res:
+        res["Schedule rho"] = 0
+
+    if "VAE Encoder" not in res:
+        res["VAE Encoder"] = "Full"
+
+    if "VAE Decoder" not in res:
+        res["VAE Decoder"] = "Full"
+
+    skip = set(shared.opts.infotext_skip_pasting)
+    res = {k: v for k, v in res.items() if k not in skip}
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     return res
 
 
-settings_map = {}
+infotext_to_setting_name_mapping = [
 
-
+<<<<<<< HEAD
 infotext_to_setting_name_mapping = [
     ('Backend', 'sd_backend'),
     ('Model hash', 'sd_model_checkpoint'),
@@ -288,7 +467,19 @@ infotext_to_setting_name_mapping = [
     ('ToMe', 'token_merging_ratio'),
     ('ToMe hires', 'token_merging_ratio_hr'),
     ('ToMe img2img', 'token_merging_ratio_img2img'),
+=======
 ]
+"""Mapping of infotext labels to setting names. Only left for backwards compatibility - use OptionInfo(..., infotext='...') instead.
+Example content:
+
+infotext_to_setting_name_mapping = [
+    ('Conditional mask weight', 'inpainting_mask_weight'),
+    ('Model hash', 'sd_model_checkpoint'),
+    ('ENSD', 'eta_noise_seed_delta'),
+    ('Schedule type', 'k_sched_type'),
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
+]
+"""
 
 
 def create_override_settings_dict(text_pairs):
@@ -297,7 +488,13 @@ def create_override_settings_dict(text_pairs):
     for pair in text_pairs:
         k, v = pair.split(":", maxsplit=1)
         params[k] = v.strip()
+<<<<<<< HEAD
     for param_name, setting_name in infotext_to_setting_name_mapping:
+=======
+
+    mapping = [(info.infotext, k) for k, info in shared.opts.data_labels.items() if info.infotext]
+    for param_name, setting_name in mapping + infotext_to_setting_name_mapping:
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         value = params.get(param_name, None)
         if value is None:
             continue
@@ -347,9 +544,20 @@ def connect_paste(button, local_paste_fields, input_comp, override_settings_comp
         return res
 
     if override_settings_component is not None:
+        already_handled_fields = {key: 1 for _, key in paste_fields}
+
         def paste_settings(params):
             vals = {}
+<<<<<<< HEAD
             for param_name, setting_name in infotext_to_setting_name_mapping:
+=======
+
+            mapping = [(info.infotext, k) for k, info in shared.opts.data_labels.items() if info.infotext]
+            for param_name, setting_name in mapping + infotext_to_setting_name_mapping:
+                if param_name in already_handled_fields:
+                    continue
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
                 v = params.get(param_name, None)
                 if v is None:
                     continue
@@ -364,14 +572,25 @@ def connect_paste(button, local_paste_fields, input_comp, override_settings_comp
                     continue
                 vals[param_name] = v
             vals_pairs = [f"{k}: {v}" for k, v in vals.items()]
+<<<<<<< HEAD
             shared.log.debug(f'Settings overrides: {vals_pairs}')
             return gr.Dropdown.update(value=vals_pairs, choices=vals_pairs, visible=len(vals_pairs) > 0)
         local_paste_fields = local_paste_fields + [(override_settings_component, paste_settings)]
+=======
+
+            return gr.Dropdown.update(value=vals_pairs, choices=vals_pairs, visible=bool(vals_pairs))
+
+        paste_fields = paste_fields + [(override_settings_component, paste_settings)]
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
     button.click(
         fn=paste_func,
         inputs=[input_comp],
+<<<<<<< HEAD
         outputs=[x[0] for x in local_paste_fields],
+=======
+        outputs=[x[0] for x in paste_fields],
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         show_progress=False,
     )
     button.click(
@@ -381,3 +600,7 @@ def connect_paste(button, local_paste_fields, input_comp, override_settings_comp
         outputs=[],
         show_progress=False,
     )
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e

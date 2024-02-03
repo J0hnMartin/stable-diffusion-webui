@@ -1,9 +1,12 @@
 import torch
-import torch.nn.functional as F
 import math
+<<<<<<< HEAD:modules/unipc/uni_pc.py
 import time
 from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn, TimeElapsedColumn
 from modules import shared, devices
+=======
+import tqdm
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/models/diffusion/uni_pc/uni_pc.py
 
 
 class NoiseScheduleVP:
@@ -280,6 +283,9 @@ def model_wrapper(
     model_kwargs = model_kwargs or {}
     classifier_kwargs = classifier_kwargs or {}
 
+    model_kwargs = model_kwargs or {}
+    classifier_kwargs = classifier_kwargs or {}
+
     def get_model_input_time(t_continuous):
         """
         Convert the continuous-time `t_continuous` (in [epsilon, T]) to the model input time.
@@ -474,6 +480,26 @@ class UniPC:
         else:
             return self.noise_prediction_fn(x, t)
 
+<<<<<<< HEAD:modules/unipc/uni_pc.py
+=======
+    def get_time_steps(self, skip_type, t_T, t_0, N, device):
+        """Compute the intermediate time steps for sampling.
+        """
+        if skip_type == 'logSNR':
+            lambda_T = self.noise_schedule.marginal_lambda(torch.tensor(t_T).to(device))
+            lambda_0 = self.noise_schedule.marginal_lambda(torch.tensor(t_0).to(device))
+            logSNR_steps = torch.linspace(lambda_T.cpu().item(), lambda_0.cpu().item(), N + 1).to(device)
+            return self.noise_schedule.inverse_lambda(logSNR_steps)
+        elif skip_type == 'time_uniform':
+            return torch.linspace(t_T, t_0, N + 1).to(device)
+        elif skip_type == 'time_quadratic':
+            t_order = 2
+            t = torch.linspace(t_T**(1. / t_order), t_0**(1. / t_order), N + 1).pow(t_order).to(device)
+            return t
+        else:
+            raise ValueError(f"Unsupported skip_type {skip_type}, need to be 'logSNR' or 'time_uniform' or 'time_quadratic'")
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/models/diffusion/uni_pc/uni_pc.py
     def get_orders_and_timesteps_for_singlestep_solver(self, steps, order, skip_type, t_T, t_0, device):
         """
         Get the order of each step for sampling by the singlestep DPM-Solver.
@@ -757,6 +783,7 @@ class UniPC:
             #print(f"Running UniPC Sampling with {timesteps.shape[0]} timesteps, order {order}")
             assert steps >= order, "UniPC order must be < sampling steps"
             assert timesteps.shape[0] - 1 == steps
+<<<<<<< HEAD:modules/unipc/uni_pc.py
             with Progress(TextColumn('[cyan]{task.description}'), BarColumn(), TaskProgressColumn(), TimeRemainingColumn(), TimeElapsedColumn(), console=shared.console) as progress:
                 task = progress.add_task(description="Initializing", total=steps)
                 t = time.time()
@@ -764,6 +791,13 @@ class UniPC:
                     vec_t = timesteps[0].expand((x.shape[0]))
                     model_prev_list = [self.model_fn(x, vec_t)]
                     t_prev_list = [vec_t]
+=======
+            with torch.no_grad():
+                vec_t = timesteps[0].expand((x.shape[0]))
+                model_prev_list = [self.model_fn(x, vec_t)]
+                t_prev_list = [vec_t]
+                with tqdm.tqdm(total=steps) as pbar:
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/models/diffusion/uni_pc/uni_pc.py
                     # Init the first `order` values by lower order multistep DPM-Solver.
                     for init_order in range(1, order):
                         vec_t = timesteps[init_order].expand(x.shape[0])
@@ -774,8 +808,13 @@ class UniPC:
                             self.after_update(x, model_x)
                         model_prev_list.append(model_x)
                         t_prev_list.append(vec_t)
+<<<<<<< HEAD:modules/unipc/uni_pc.py
                         progress.update(task, advance=1, description=f"Progress {round(len(vec_t) * init_order / (time.time() - t), 2)}it/s")
                     # for step in trange(order, steps + 1):
+=======
+                        pbar.update()
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/models/diffusion/uni_pc/uni_pc.py
                     for step in range(order, steps + 1):
                         vec_t = timesteps[step].expand(x.shape[0])
                         if lower_order_final:
@@ -800,7 +839,11 @@ class UniPC:
                             if model_x is None:
                                 model_x = self.model_fn(x, vec_t)
                             model_prev_list[-1] = model_x
+<<<<<<< HEAD:modules/unipc/uni_pc.py
                         progress.update(task, advance=1, description=f"Progress {round(len(vec_t) * step / (time.time() - t), 2)}it/s")
+=======
+                        pbar.update()
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/models/diffusion/uni_pc/uni_pc.py
         else:
             raise NotImplementedError
         if denoise_to_zero:

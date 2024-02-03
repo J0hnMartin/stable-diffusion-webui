@@ -2,6 +2,10 @@ import time
 import networks
 import lora_patches
 from modules import extra_networks, shared
+<<<<<<< HEAD
+=======
+import networks
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 class ExtraNetworkLora(extra_networks.ExtraNetwork):
@@ -14,10 +18,19 @@ class ExtraNetworkLora(extra_networks.ExtraNetwork):
 
         """mapping of network names to the number of errors the network had during operation"""
 
+        self.errors = {}
+        """mapping of network names to the number of errors the network had during operation"""
+
     def activate(self, p, params_list):
         t0 = time.time()
         additional = shared.opts.sd_lora
+<<<<<<< HEAD
         self.errors.clear()
+=======
+
+        self.errors.clear()
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         if additional != "None" and additional in networks.available_networks and not any(x for x in params_list if x.items[0] == additional):
             p.all_prompts = [x + f"<lora:{additional}:{shared.opts.extra_networks_default_multiplier}>" for x in p.all_prompts]
             params_list.append(extra_networks.ExtraNetworkParams(items=[additional, shared.opts.extra_networks_default_multiplier]))
@@ -32,6 +45,7 @@ class ExtraNetworkLora(extra_networks.ExtraNetwork):
         dyn_dims = []
         for params in params_list:
             assert params.items
+<<<<<<< HEAD
             names.append(params.positional[0])
             te_multiplier = float(params.positional[1]) if len(params.positional) > 1 else 1.0
             te_multiplier = float(params.named.get("te", te_multiplier))
@@ -48,12 +62,33 @@ class ExtraNetworkLora(extra_networks.ExtraNetwork):
         t1 = time.time()
         networks.load_networks(names, te_multipliers, unet_multipliers, dyn_dims)
         t2 = time.time()
+=======
+
+            names.append(params.positional[0])
+
+            te_multiplier = float(params.positional[1]) if len(params.positional) > 1 else 1.0
+            te_multiplier = float(params.named.get("te", te_multiplier))
+
+            unet_multiplier = float(params.positional[2]) if len(params.positional) > 2 else te_multiplier
+            unet_multiplier = float(params.named.get("unet", unet_multiplier))
+
+            dyn_dim = int(params.positional[3]) if len(params.positional) > 3 else None
+            dyn_dim = int(params.named["dyn"]) if "dyn" in params.named else dyn_dim
+
+            te_multipliers.append(te_multiplier)
+            unet_multipliers.append(unet_multiplier)
+            dyn_dims.append(dyn_dim)
+
+        networks.load_networks(names, te_multipliers, unet_multipliers, dyn_dims)
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         if shared.opts.lora_add_hashes_to_infotext:
             network_hashes = []
             for item in networks.loaded_networks:
                 shorthash = item.network_on_disk.shorthash
                 if not shorthash:
                     continue
+<<<<<<< HEAD
                 alias = item.mentioned_name
                 if not alias:
                     continue
@@ -82,4 +117,22 @@ class ExtraNetworkLora(extra_networks.ExtraNetwork):
             p.comment("Networks with errors: " + ", ".join(f"{k} ({v})" for k, v in self.errors.items()))
             for k, v in self.errors.items():
                 shared.log.error(f'LoRA errors: file="{k}" errors={v}')
+=======
+
+                alias = item.mentioned_name
+                if not alias:
+                    continue
+
+                alias = alias.replace(":", "").replace(",", "")
+
+                network_hashes.append(f"{alias}: {shorthash}")
+
+            if network_hashes:
+                p.extra_generation_params["Lora hashes"] = ", ".join(network_hashes)
+
+    def deactivate(self, p):
+        if self.errors:
+            p.comment("Networks with errors: " + ", ".join(f"{k} ({v})" for k, v in self.errors.items()))
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             self.errors.clear()

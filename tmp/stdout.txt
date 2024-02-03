@@ -1,0 +1,8 @@
+ Volume in drive E is Work Data
+ Volume Serial Number is 9EEE-F95D
+
+ Directory of E:\Visual-Studio-Code\SD.Next\venv\Scripts
+
+02/01/2024  07:05 PM           270,616 python.exe
+               1 File(s)        270,616 bytes
+               0 Dir(s)  942,643,486,720 bytes free

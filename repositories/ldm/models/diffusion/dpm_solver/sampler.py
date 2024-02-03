@@ -51,11 +51,20 @@ class DPMSolverSampler(object):
         if conditioning is not None:
             if isinstance(conditioning, dict):
                 ctmp = conditioning[list(conditioning.keys())[0]]
+<<<<<<< HEAD:repositories/ldm/models/diffusion/dpm_solver/sampler.py
                 while isinstance(ctmp, list): ctmp = ctmp[0]
                 if isinstance(ctmp, torch.Tensor):
                     cbs = ctmp.shape[0]
                     if cbs != batch_size:
                         print(f"Warning: Got {cbs} conditionings but batch-size is {batch_size}")
+=======
+                while isinstance(ctmp, list):
+                    ctmp = ctmp[0]
+                cbs = ctmp.shape[0]
+                if cbs != batch_size:
+                    print(f"Warning: Got {cbs} conditionings but batch-size is {batch_size}")
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/models/diffusion/uni_pc/sampler.py
             elif isinstance(conditioning, list):
                 for ctmp in conditioning:
                     if ctmp.shape[0] != batch_size:

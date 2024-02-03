@@ -1,7 +1,6 @@
 import html
 import gradio as gr
 import modules.textual_inversion.textual_inversion
-import modules.textual_inversion.preprocess
 from modules import sd_hijack, shared
 
 
@@ -11,11 +10,14 @@ def create_embedding(name, initialization_text, nvpt, overwrite_old):
     return gr.Dropdown.update(choices=sorted(sd_hijack.model_hijack.embedding_db.word_embeddings.keys())), f"Created: {filename}", ""
 
 
+<<<<<<< HEAD
 def preprocess(*args):
     modules.textual_inversion.preprocess.preprocess(*args)
     return f"Preprocessing {'interrupted' if shared.state.interrupted else 'finished'}.", ""
 
 
+=======
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 def train_embedding(*args):
     assert not shared.cmd_opts.lowvram, 'Training models with lowvram not possible'
     apply_optimizations = False

@@ -1,6 +1,9 @@
 import torch
 
+<<<<<<< HEAD
 import diffusers.models.lora as diffusers_lora
+=======
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 import lyco_helpers
 import network
 from modules import devices
@@ -10,29 +13,55 @@ class ModuleTypeLora(network.ModuleType):
     def create_module(self, net: network.Network, weights: network.NetworkWeights):
         if all(x in weights.w for x in ["lora_up.weight", "lora_down.weight"]):
             return NetworkModuleLora(net, weights)
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         return None
 
 
 class NetworkModuleLora(network.NetworkModule):
     def __init__(self,  net: network.Network, weights: network.NetworkWeights):
         super().__init__(net, weights)
+<<<<<<< HEAD
         self.up_model = self.create_module(weights.w, "lora_up.weight")
         self.down_model = self.create_module(weights.w, "lora_down.weight")
         self.mid_model = self.create_module(weights.w, "lora_mid.weight", none_ok=True)
+=======
+
+        self.up_model = self.create_module(weights.w, "lora_up.weight")
+        self.down_model = self.create_module(weights.w, "lora_down.weight")
+        self.mid_model = self.create_module(weights.w, "lora_mid.weight", none_ok=True)
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         self.dim = weights.w["lora_down.weight"].shape[0]
 
     def create_module(self, weights, key, none_ok=False):
         weight = weights.get(key)
+<<<<<<< HEAD
         if weight is None and none_ok:
             return None
         is_linear = type(self.sd_module) in [torch.nn.Linear, torch.nn.modules.linear.NonDynamicallyQuantizableLinear, torch.nn.MultiheadAttention, diffusers_lora.LoRACompatibleLinear]
         is_conv = type(self.sd_module) in [torch.nn.Conv2d, diffusers_lora.LoRACompatibleConv]
+=======
+
+        if weight is None and none_ok:
+            return None
+
+        is_linear = type(self.sd_module) in [torch.nn.Linear, torch.nn.modules.linear.NonDynamicallyQuantizableLinear, torch.nn.MultiheadAttention]
+        is_conv = type(self.sd_module) in [torch.nn.Conv2d]
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         if is_linear:
             weight = weight.reshape(weight.shape[0], -1)
             module = torch.nn.Linear(weight.shape[1], weight.shape[0], bias=False)
         elif is_conv and key == "lora_down.weight" or key == "dyn_up":
             if len(weight.shape) == 2:
                 weight = weight.reshape(weight.shape[0], -1, 1, 1)
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             if weight.shape[2] != 1 or weight.shape[3] != 1:
                 module = torch.nn.Conv2d(weight.shape[1], weight.shape[0], self.sd_module.kernel_size, self.sd_module.stride, self.sd_module.padding, bias=False)
             else:
@@ -43,10 +72,15 @@ class NetworkModuleLora(network.NetworkModule):
             module = torch.nn.Conv2d(weight.shape[1], weight.shape[0], (1, 1), bias=False)
         else:
             raise AssertionError(f'Lora layer {self.network_key} matched a layer with unsupported type: {type(self.sd_module).__name__}')
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         with torch.no_grad():
             if weight.shape != module.weight.shape:
                 weight = weight.reshape(module.weight.shape)
             module.weight.copy_(weight)
+<<<<<<< HEAD
         module.to(device=devices.cpu, dtype=devices.dtype)
         module.weight.requires_grad_(False)
         return module
@@ -58,18 +92,46 @@ class NetworkModuleLora(network.NetworkModule):
         if self.mid_model is not None:
             # cp-decomposition
             mid = self.mid_model.weight.to(target.device, dtype=target.dtype)
+=======
+
+        module.to(device=devices.cpu, dtype=devices.dtype)
+        module.weight.requires_grad_(False)
+
+        return module
+
+    def calc_updown(self, orig_weight):
+        up = self.up_model.weight.to(orig_weight.device, dtype=orig_weight.dtype)
+        down = self.down_model.weight.to(orig_weight.device, dtype=orig_weight.dtype)
+
+        output_shape = [up.size(0), down.size(1)]
+        if self.mid_model is not None:
+            # cp-decomposition
+            mid = self.mid_model.weight.to(orig_weight.device, dtype=orig_weight.dtype)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             updown = lyco_helpers.rebuild_cp_decomposition(up, down, mid)
             output_shape += mid.shape[2:]
         else:
             if len(down.shape) == 4:
                 output_shape += down.shape[2:]
             updown = lyco_helpers.rebuild_conventional(up, down, output_shape, self.network.dyn_dim)
+<<<<<<< HEAD
         return self.finalize_updown(updown, target, output_shape)
+=======
+
+        return self.finalize_updown(updown, orig_weight, output_shape)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
     def forward(self, x, y):
         self.up_model.to(device=devices.device)
         self.down_model.to(device=devices.device)
+<<<<<<< HEAD
         if hasattr(y, "scale"):
             return y(scale=1) + self.up_model(self.down_model(x)) * self.multiplier() * self.calc_scale()
 
         return y + self.up_model(self.down_model(x)) * self.multiplier() * self.calc_scale()
+=======
+
+        return y + self.up_model(self.down_model(x)) * self.multiplier() * self.calc_scale()
+
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e

@@ -1,5 +1,12 @@
 import os
 import collections
+<<<<<<< HEAD
+=======
+from dataclasses import dataclass
+
+from modules import paths, shared, devices, script_callbacks, sd_models, extra_networks, lowvram, sd_hijack, hashes
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 import glob
 from copy import deepcopy
 import torch
@@ -15,6 +22,25 @@ vae_path = os.path.abspath(os.path.join(paths.models_path, 'VAE'))
 checkpoints_loaded = collections.OrderedDict()
 
 
+<<<<<<< HEAD
+=======
+def get_loaded_vae_name():
+    if loaded_vae_file is None:
+        return None
+
+    return os.path.basename(loaded_vae_file)
+
+
+def get_loaded_vae_hash():
+    if loaded_vae_file is None:
+        return None
+
+    sha256 = hashes.sha256(loaded_vae_file, 'vae')
+
+    return sha256[0:10] if sha256 else None
+
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 def get_base_vae(model):
     if base_vae is not None and checkpoint_info == model.sd_checkpoint_info and model:
         return base_vae
@@ -103,8 +129,11 @@ def refresh_vae_list():
     shared.log.info(f'Available VAEs: path="{vae_path}" items={len(vae_dict)}')
     return vae_dict
 
+    vae_dict.update(dict(sorted(vae_dict.items(), key=lambda item: shared.natural_sort_key(item[0]))))
+
 
 def find_vae_near_checkpoint(checkpoint_file):
+<<<<<<< HEAD
     checkpoint_path = os.path.splitext(checkpoint_file)[0]
     for vae_location in [f"{checkpoint_path}.vae.pt", f"{checkpoint_path}.vae.ckpt", f"{checkpoint_path}.vae.safetensors"]:
         if os.path.isfile(vae_location):
@@ -135,6 +164,84 @@ def resolve_vae(checkpoint_file):
             return vae_from_options, 'settings'
         shared.log.warning(f"VAE not found: {shared.opts.sd_vae}")
     return None, None
+=======
+    checkpoint_path = os.path.basename(checkpoint_file).rsplit('.', 1)[0]
+    for vae_file in vae_dict.values():
+        if os.path.basename(vae_file).startswith(checkpoint_path):
+            return vae_file
+
+    return None
+
+
+@dataclass
+class VaeResolution:
+    vae: str = None
+    source: str = None
+    resolved: bool = True
+
+    def tuple(self):
+        return self.vae, self.source
+
+
+def is_automatic():
+    return shared.opts.sd_vae in {"Automatic", "auto"}  # "auto" for people with old config
+
+
+def resolve_vae_from_setting() -> VaeResolution:
+    if shared.opts.sd_vae == "None":
+        return VaeResolution()
+
+    vae_from_options = vae_dict.get(shared.opts.sd_vae, None)
+    if vae_from_options is not None:
+        return VaeResolution(vae_from_options, 'specified in settings')
+
+    if not is_automatic():
+        print(f"Couldn't find VAE named {shared.opts.sd_vae}; using None instead")
+
+    return VaeResolution(resolved=False)
+
+
+def resolve_vae_from_user_metadata(checkpoint_file) -> VaeResolution:
+    metadata = extra_networks.get_user_metadata(checkpoint_file)
+    vae_metadata = metadata.get("vae", None)
+    if vae_metadata is not None and vae_metadata != "Automatic":
+        if vae_metadata == "None":
+            return VaeResolution()
+
+        vae_from_metadata = vae_dict.get(vae_metadata, None)
+        if vae_from_metadata is not None:
+            return VaeResolution(vae_from_metadata, "from user metadata")
+
+    return VaeResolution(resolved=False)
+
+
+def resolve_vae_near_checkpoint(checkpoint_file) -> VaeResolution:
+    vae_near_checkpoint = find_vae_near_checkpoint(checkpoint_file)
+    if vae_near_checkpoint is not None and (not shared.opts.sd_vae_overrides_per_model_preferences or is_automatic()):
+        return VaeResolution(vae_near_checkpoint, 'found near the checkpoint')
+
+    return VaeResolution(resolved=False)
+
+
+def resolve_vae(checkpoint_file) -> VaeResolution:
+    if shared.cmd_opts.vae_path is not None:
+        return VaeResolution(shared.cmd_opts.vae_path, 'from commandline argument')
+
+    if shared.opts.sd_vae_overrides_per_model_preferences and not is_automatic():
+        return resolve_vae_from_setting()
+
+    res = resolve_vae_from_user_metadata(checkpoint_file)
+    if res.resolved:
+        return res
+
+    res = resolve_vae_near_checkpoint(checkpoint_file)
+    if res.resolved:
+        return res
+
+    res = resolve_vae_from_setting()
+
+    return res
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 def load_vae_dict(filename):
@@ -143,8 +250,15 @@ def load_vae_dict(filename):
     return vae_dict_1
 
 
+<<<<<<< HEAD
 def load_vae(model, vae_file=None, vae_source="unknown-source"):
     global loaded_vae_file # pylint: disable=global-statement
+=======
+def load_vae(model, vae_file=None, vae_source="from unknown source"):
+    global vae_dict, base_vae, loaded_vae_file
+    # save_settings = False
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     cache_enabled = shared.opts.sd_vae_checkpoint_cache > 0
     if vae_file:
         try:
@@ -178,6 +292,8 @@ def load_vae(model, vae_file=None, vae_source="unknown-source"):
     elif loaded_vae_file:
         restore_base_vae(model)
     loaded_vae_file = vae_file
+    model.base_vae = base_vae
+    model.loaded_vae_file = loaded_vae_file
 
 
 def load_vae_diffusers(model_file, vae_file=None, vae_source="unknown-source"):
@@ -241,7 +357,10 @@ unspecified = object()
 
 
 def reload_vae_weights(sd_model=None, vae_file=unspecified):
+<<<<<<< HEAD
     from modules import lowvram, sd_hijack
+=======
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     if not sd_model:
         sd_model = shared.sd_model
     if sd_model is None:
@@ -250,7 +369,7 @@ def reload_vae_weights(sd_model=None, vae_file=unspecified):
     checkpoint_info = sd_model.sd_checkpoint_info
     checkpoint_file = checkpoint_info.filename
     if vae_file == unspecified:
-        vae_file, vae_source = resolve_vae(checkpoint_file)
+        vae_file, vae_source = resolve_vae(checkpoint_file).tuple()
     else:
         vae_source = "function-argument"
     if loaded_vae_file == vae_file:
@@ -261,6 +380,7 @@ def reload_vae_weights(sd_model=None, vae_file=unspecified):
         else:
             sd_model.to(devices.cpu)
 
+<<<<<<< HEAD
     if shared.backend == shared.Backend.ORIGINAL:
         sd_hijack.model_hijack.undo_hijack(sd_model)
         if shared.cmd_opts.rollback_vae and devices.dtype_vae == torch.bfloat16:
@@ -270,12 +390,27 @@ def reload_vae_weights(sd_model=None, vae_file=unspecified):
         script_callbacks.model_loaded_callback(sd_model)
         if vae_file is not None:
             shared.log.info(f"VAE weights loaded: {vae_file}")
+=======
+    if sd_model.lowvram:
+        lowvram.send_everything_to_cpu()
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     else:
         if hasattr(shared.sd_model, "vae") and hasattr(shared.sd_model, "sd_checkpoint_info"):
             vae = load_vae_diffusers(shared.sd_model.sd_checkpoint_info.filename, vae_file, vae_source)
             if vae is not None:
                 sd_models.set_diffuser_options(sd_model, vae=vae, op='vae')
 
+<<<<<<< HEAD
     if not shared.cmd_opts.lowvram and not shared.cmd_opts.medvram and not getattr(sd_model, 'has_accelerate', False):
+=======
+    sd_hijack.model_hijack.undo_hijack(sd_model)
+
+    load_vae(sd_model, vae_file, vae_source)
+
+    sd_hijack.model_hijack.hijack(sd_model)
+    script_callbacks.model_loaded_callback(sd_model)
+
+    if not sd_model.lowvram:
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         sd_model.to(devices.device)
     return sd_model

@@ -39,14 +39,22 @@ class Upscaler:
         self.pre_pad = 0
         self.mod_scale = None
         self.model_download_path = None
+<<<<<<< HEAD
         if self.user_path is not None and len(self.user_path) > 0 and not os.path.exists(self.user_path):
             modules.shared.log.info(f'Upscaler create: folder="{self.user_path}"')
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         if self.model_path is None and self.name:
             self.model_path = os.path.join(modules.shared.models_path, self.name)
         if self.model_path and create_dirs:
             os.makedirs(self.model_path, exist_ok=True)
         try:
+<<<<<<< HEAD
             import cv2  # pylint: disable=unused-import
+=======
+            import cv2  # noqa: F401
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             self.can_tile = True
         except Exception:
             pass
@@ -106,15 +114,29 @@ class Upscaler:
         orig_state = copy.deepcopy(modules.shared.state)
         modules.shared.state.begin('upscale')
         self.scale = scale
+<<<<<<< HEAD
         dest_w = int(img.width * scale)
         dest_h = int(img.height * scale)
         for _ in range(3):
+=======
+        dest_w = int((img.width * scale) // 8 * 8)
+        dest_h = int((img.height * scale) // 8 * 8)
+
+        for _ in range(3):
+            if img.width >= dest_w and img.height >= dest_h:
+                break
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             shape = (img.width, img.height)
             img = self.do_upscale(img, selected_model)
             if shape == (img.width, img.height):
                 break
+<<<<<<< HEAD
             if img.width >= dest_w and img.height >= dest_h:
                 break
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         if img.width != dest_w or img.height != dest_h:
             img = img.resize((int(dest_w), int(dest_h)), resample=LANCZOS)
         modules.shared.state.end()
@@ -125,8 +147,13 @@ class Upscaler:
     def load_model(self, path: str):
         pass
 
+<<<<<<< HEAD
     def find_models(self, ext_filter=None) -> list: # pylint: disable=unused-argument
         return modelloader.load_models(model_path=self.model_path, model_url=self.model_url, command_path=self.user_path)
+=======
+    def find_models(self, ext_filter=None) -> list:
+        return modelloader.load_models(model_path=self.model_path, model_url=self.model_url, command_path=self.user_path, ext_filter=ext_filter)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
     def update_status(self, prompt):
         modules.shared.log.info(f'Upscaler: type={self.name} model="{prompt}"')

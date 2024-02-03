@@ -30,7 +30,11 @@ class LearnScheduleIterator:
                     return
             assert self.rates
         except (ValueError, AssertionError) as e:
+<<<<<<< HEAD
             raise RuntimeError('Invalid learning rate schedule. It should be a number or, for example, like "0.001:100, 0.00001:1000, 1e-5:10000" to have lr of 0.001 until step 100, 0.00001 until 1000, and 1e-5 until 10000.') from e
+=======
+            raise Exception('Invalid learning rate schedule. It should be a number or, for example, like "0.001:100, 0.00001:1000, 1e-5:10000" to have lr of 0.001 until step 100, 0.00001 until 1000, and 1e-5 until 10000.') from e
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
     def __iter__(self):

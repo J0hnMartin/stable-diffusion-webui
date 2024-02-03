@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import math
 import ldm.models.diffusion.ddim
 import ldm.models.diffusion.plms
@@ -213,3 +214,5 @@ class VanillaStableDiffusionSampler:
         samples_ddim = self.launch_sampling(steps, lambda: self.sampler.sample(S=steps, conditioning=conditioning, batch_size=int(x.shape[0]), shape=x[0].shape, verbose=False, unconditional_guidance_scale=p.cfg_scale, unconditional_conditioning=unconditional_conditioning, x_T=x, eta=self.eta)[0])
 
         return samples_ddim
+=======
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e

@@ -2,9 +2,18 @@ import os
 import tempfile
 from collections import namedtuple
 from pathlib import Path
+<<<<<<< HEAD
 import gradio as gr
 from PIL import Image, PngImagePlugin
 from modules import shared, errors, paths
+=======
+
+import gradio.components
+
+from PIL import PngImagePlugin
+
+from modules import shared
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 Savedfile = namedtuple("Savedfile", ["name"])
@@ -19,6 +28,7 @@ def register_tmp_file(gradio, filename):
 def check_tmp_file(gradio, filename):
     ok = False
     if hasattr(gradio, 'temp_file_sets'):
+<<<<<<< HEAD
         ok = ok or any(filename in fileset for fileset in gradio.temp_file_sets)
     if shared.opts.outdir_samples != '':
         ok = ok or Path(shared.opts.outdir_samples).resolve() in Path(filename).resolve().parents
@@ -56,12 +66,39 @@ def pil_to_temp_file(self, img: Image, dir: str, format="png") -> str: # pylint:
         return name
     if shared.opts.temp_dir != "":
         dir = shared.opts.temp_dir
+=======
+        return any(filename in fileset for fileset in gradio.temp_file_sets)
+
+    if hasattr(gradio, 'temp_dirs'):
+        return any(Path(temp_dir).resolve() in Path(filename).resolve().parents for temp_dir in gradio.temp_dirs)
+
+    return False
+
+
+def save_pil_to_file(self, pil_image, dir=None, format="png"):
+    already_saved_as = getattr(pil_image, 'already_saved_as', None)
+    if already_saved_as and os.path.isfile(already_saved_as):
+        register_tmp_file(shared.demo, already_saved_as)
+        filename = already_saved_as
+
+        if not shared.opts.save_images_add_number:
+            filename += f'?{os.path.getmtime(already_saved_as)}'
+
+        return filename
+
+    if shared.opts.temp_dir != "":
+        dir = shared.opts.temp_dir
+    else:
+        os.makedirs(dir, exist_ok=True)
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     use_metadata = False
     metadata = PngImagePlugin.PngInfo()
     for key, value in img.info.items():
         if isinstance(key, str) and isinstance(value, str):
             metadata.add_text(key, value)
             use_metadata = True
+<<<<<<< HEAD
     if not os.path.exists(dir):
         os.makedirs(dir, exist_ok=True)
         shared.log.debug(f'Created temp folder: path="{dir}"')
@@ -79,6 +116,18 @@ def pil_to_temp_file(self, img: Image, dir: str, format="png") -> str: # pylint:
 
 # override save to file function so that it also writes PNG info
 gr.components.IOComponent.pil_to_temp_file = pil_to_temp_file      # gradio >=3.32.0
+=======
+
+    file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir=dir)
+    pil_image.save(file_obj, pnginfo=(metadata if use_metadata else None))
+    return file_obj.name
+
+
+def install_ui_tempdir_override():
+    """override save to file function so that it also writes PNG info"""
+    gradio.components.IOComponent.pil_to_temp_file = save_pil_to_file
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 def on_tmpdir_changed():
     if shared.opts.temp_dir == "":
@@ -90,7 +139,12 @@ def cleanup_tmpdr():
     temp_dir = shared.opts.temp_dir
     if temp_dir == "" or not os.path.isdir(temp_dir):
         return
+<<<<<<< HEAD
     for root, _dirs, files in os.walk(temp_dir, topdown=False):
+=======
+
+    for root, _, files in os.walk(temp_dir, topdown=False):
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         for name in files:
             _, extension = os.path.splitext(name)
             if extension != ".png" and extension != ".jpg" and extension != ".webp":

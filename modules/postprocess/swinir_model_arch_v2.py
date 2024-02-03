@@ -639,7 +639,11 @@ class Upsample_hf(nn.Sequential):
             m.append(nn.Conv2d(num_feat, 9 * num_feat, 3, 1, 1))
             m.append(nn.PixelShuffle(3))
         else:
+<<<<<<< HEAD:modules/postprocess/swinir_model_arch_v2.py
             raise ValueError(f'scale {scale} is not supported. Supported scales: 2^n and 3.')
+=======
+            raise ValueError(f'scale {scale} is not supported. ' 'Supported scales: 2^n and 3.')
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:extensions-builtin/SwinIR/swinir_model_arch_v2.py
         super(Upsample_hf, self).__init__(*m)
 
 

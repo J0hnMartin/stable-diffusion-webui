@@ -1,14 +1,26 @@
 import html
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 import gradio as gr
 import modules.hypernetworks.hypernetwork
 from modules import devices, sd_hijack, shared
 
 not_available = ["hardswish", "multiheadattention"]
+<<<<<<< HEAD
 keys = [x for x in modules.hypernetworks.hypernetwork.HypernetworkModule.activation_dict.keys() if x not in not_available]
+=======
+keys = [x for x in modules.hypernetworks.hypernetwork.HypernetworkModule.activation_dict if x not in not_available]
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 def create_hypernetwork(name, enable_sizes, overwrite_old, layer_structure=None, activation_func=None, weight_init=None, add_layer_norm=False, use_dropout=False, dropout_structure=None):
     filename = modules.hypernetworks.hypernetwork.create_hypernetwork(name, enable_sizes, overwrite_old, layer_structure, activation_func, weight_init, add_layer_norm, use_dropout, dropout_structure)
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     return gr.Dropdown.update(choices=sorted(shared.hypernetworks)), f"Created: {filename}", ""
 
 

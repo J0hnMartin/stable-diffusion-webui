@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 # TODO a1111 compatibility module
 # TODO cfg_denoiser implementation missing
 
+=======
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 import torch
 from modules import prompt_parser, devices, sd_samplers_common
 
@@ -63,7 +66,11 @@ class CFGDenoiser(torch.nn.Module):
 
     @property
     def inner_model(self):
+<<<<<<< HEAD
         raise NotImplementedError
+=======
+        raise NotImplementedError()
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
     def combine_denoised(self, x_out, conds_list, uncond, cond_scale):
         denoised_uncond = x_out[-uncond.shape[0]:]
@@ -81,7 +88,11 @@ class CFGDenoiser(torch.nn.Module):
 
         return denoised
 
+<<<<<<< HEAD
     def get_pred_x0(self, x_in, x_out, sigma): # pylint: disable=unused-argument
+=======
+    def get_pred_x0(self, x_in, x_out, sigma):
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         return x_out
 
     def update_inner_model(self):
@@ -95,10 +106,16 @@ class CFGDenoiser(torch.nn.Module):
         if state.interrupted or state.skipped:
             raise sd_samplers_common.InterruptedException
 
+<<<<<<< HEAD
         # TODO cfg_scale implementation missing
         # if sd_samplers_common.apply_refiner(self):
         #     cond = self.sampler.sampler_extra_args['cond']
         #    uncond = self.sampler.sampler_extra_args['uncond']
+=======
+        if sd_samplers_common.apply_refiner(self):
+            cond = self.sampler.sampler_extra_args['cond']
+            uncond = self.sampler.sampler_extra_args['uncond']
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
         # at self.image_cfg_scale == 1.0 produced results for edit model are the same as with normal sampling,
         # so is_edit_model is set to False to support AND composition.
@@ -117,6 +134,7 @@ class CFGDenoiser(torch.nn.Module):
 
         if shared.sd_model.model.conditioning_key == "crossattn-adm":
             image_uncond = torch.zeros_like(image_cond)
+<<<<<<< HEAD
             make_condition_dict = lambda c_crossattn, c_adm: {"c_crossattn": [c_crossattn], "c_adm": c_adm} # pylint: disable=unnecessary-lambda-assignment
         else:
             image_uncond = image_cond
@@ -124,6 +142,15 @@ class CFGDenoiser(torch.nn.Module):
                 make_condition_dict = lambda c_crossattn, c_concat: {**c_crossattn, "c_concat": [c_concat]} # pylint: disable=unnecessary-lambda-assignment
             else:
                 make_condition_dict = lambda c_crossattn, c_concat: {"c_crossattn": [c_crossattn], "c_concat": [c_concat]} # pylint: disable=unnecessary-lambda-assignment
+=======
+            make_condition_dict = lambda c_crossattn, c_adm: {"c_crossattn": [c_crossattn], "c_adm": c_adm}
+        else:
+            image_uncond = image_cond
+            if isinstance(uncond, dict):
+                make_condition_dict = lambda c_crossattn, c_concat: {**c_crossattn, "c_concat": [c_concat]}
+            else:
+                make_condition_dict = lambda c_crossattn, c_concat: {"c_crossattn": [c_crossattn], "c_concat": [c_concat]}
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
         if not is_edit_model:
             x_in = torch.cat([torch.stack([x[i] for _ in range(n)]) for i, n in enumerate(repeats)] + [x])
@@ -231,3 +258,7 @@ class CFGDenoiser(torch.nn.Module):
 
         self.step += 1
         return denoised
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e

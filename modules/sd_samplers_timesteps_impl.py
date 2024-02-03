@@ -1,19 +1,30 @@
+<<<<<<< HEAD
 # TODO a1111 compatibility module
 
+=======
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 import torch
 import tqdm
 import k_diffusion.sampling
 import numpy as np
 
 from modules import shared
+<<<<<<< HEAD
 from modules.unipc import uni_pc
+=======
+from modules.models.diffusion.uni_pc import uni_pc
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 @torch.no_grad()
 def ddim(model, x, timesteps, extra_args=None, callback=None, disable=None, eta=0.0):
     alphas_cumprod = model.inner_model.inner_model.alphas_cumprod
     alphas = alphas_cumprod[timesteps]
+<<<<<<< HEAD
     alphas_prev = alphas_cumprod[torch.nn.functional.pad(timesteps[:-1], pad=(1, 0))].to(torch.float64 if x.device.type != 'mps' else torch.float32) # pylint: disable=not-callable
+=======
+    alphas_prev = alphas_cumprod[torch.nn.functional.pad(timesteps[:-1], pad=(1, 0))].to(torch.float64 if x.device.type != 'mps' and x.device.type != 'xpu' else torch.float32)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     sqrt_one_minus_alphas = torch.sqrt(1 - alphas)
     sigmas = eta * np.sqrt((1 - alphas_prev.cpu().numpy()) / (1 - alphas.cpu()) * (1 - alphas.cpu() / alphas_prev.cpu().numpy()))
 
@@ -45,7 +56,11 @@ def ddim(model, x, timesteps, extra_args=None, callback=None, disable=None, eta=
 def plms(model, x, timesteps, extra_args=None, callback=None, disable=None):
     alphas_cumprod = model.inner_model.inner_model.alphas_cumprod
     alphas = alphas_cumprod[timesteps]
+<<<<<<< HEAD
     alphas_prev = alphas_cumprod[torch.nn.functional.pad(timesteps[:-1], pad=(1, 0))].to(torch.float64 if x.device.type != 'mps' else torch.float32) # pylint: disable=not-callable
+=======
+    alphas_prev = alphas_cumprod[torch.nn.functional.pad(timesteps[:-1], pad=(1, 0))].to(torch.float64 if x.device.type != 'mps' and x.device.type != 'xpu' else torch.float32)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     sqrt_one_minus_alphas = torch.sqrt(1 - alphas)
 
     extra_args = {} if extra_args is None else extra_args
@@ -128,7 +143,11 @@ class UniPCCFG(uni_pc.UniPC):
         return res
 
 
+<<<<<<< HEAD
 def unipc(model, x, timesteps, extra_args=None, callback=None, disable=None, is_img2img=False): # pylint: disable=unused-argument
+=======
+def unipc(model, x, timesteps, extra_args=None, callback=None, disable=None, is_img2img=False):
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     alphas_cumprod = model.inner_model.inner_model.alphas_cumprod
 
     ns = uni_pc.NoiseScheduleVP('discrete', alphas_cumprod=alphas_cumprod)

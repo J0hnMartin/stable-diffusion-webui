@@ -1,8 +1,15 @@
 import os
 import html
+<<<<<<< HEAD
 import json
 import concurrent
+=======
+import os
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 from modules import shared, ui_extra_networks, sd_models
+from modules.ui_extra_networks import quote_js
+from modules.ui_extra_networks_checkpoints_user_metadata import CheckpointUserMetadataEditor
 
 
 reference_dir = os.path.join('models', 'Reference')
@@ -11,9 +18,12 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
     def __init__(self):
         super().__init__('Model')
 
+        self.allow_prompt = False
+
     def refresh(self):
         shared.refresh_checkpoints()
 
+<<<<<<< HEAD
     def list_reference(self): # pylint: disable=inconsistent-return-statements
         reference_models = shared.readfile(os.path.join('html', 'reference.json'))
         for k, v in reference_models.items():
@@ -41,6 +51,34 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
                 "metadata": {},
                 "description": v.get('desc', ''),
             }
+=======
+    def create_item(self, name, index=None, enable_filter=True):
+        checkpoint: sd_models.CheckpointInfo = sd_models.checkpoint_aliases.get(name)
+        if checkpoint is None:
+            return
+
+        path, ext = os.path.splitext(checkpoint.filename)
+        return {
+            "name": checkpoint.name_for_extra,
+            "filename": checkpoint.filename,
+            "shorthash": checkpoint.shorthash,
+            "preview": self.find_preview(path),
+            "description": self.find_description(path),
+            "search_term": self.search_terms_from_path(checkpoint.filename) + " " + (checkpoint.sha256 or ""),
+            "onclick": '"' + html.escape(f"""return selectCheckpoint({quote_js(name)})""") + '"',
+            "local_preview": f"{path}.{shared.opts.samples_format}",
+            "metadata": checkpoint.metadata,
+            "sort_keys": {'default': index, **self.get_sort_keys(checkpoint.filename)},
+        }
+
+    def list_items(self):
+        # instantiate a list to protect against concurrent modification
+        names = list(sd_models.checkpoints_list)
+        for index, name in enumerate(names):
+            item = self.create_item(name, index)
+            if item is not None:
+                yield item
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
     def create_item(self, name):
         record = None
@@ -67,6 +105,7 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
             shared.log.debug(f"Extra networks error: type=model file={name} {e}")
         return record
 
+<<<<<<< HEAD
     def list_items(self):
         with concurrent.futures.ThreadPoolExecutor(max_workers=shared.max_workers) as executor:
             future_items = {executor.submit(self.create_item, cp): cp for cp in list(sd_models.checkpoints_list.copy())}
@@ -82,3 +121,7 @@ class ExtraNetworksPageCheckpoints(ui_extra_networks.ExtraNetworksPage):
             return [v for v in [shared.opts.ckpt_dir, shared.opts.diffusers_dir, reference_dir] if v is not None]
         else:
             return [v for v in [shared.opts.ckpt_dir, reference_dir, sd_models.model_path] if v is not None]
+=======
+    def create_user_metadata_editor(self, ui, tabname):
+        return CheckpointUserMetadataEditor(ui, tabname, self)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e

@@ -7,6 +7,10 @@ import torch
 import torch.hub # pylint: disable=ungrouped-imports
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 from modules import devices, paths, shared, lowvram, modelloader, errors
 
 
@@ -21,12 +25,23 @@ def category_types():
 
 
 def download_default_clip_interrogate_categories(content_dir):
+<<<<<<< HEAD
     shared.log.info("Downloading CLIP categories...")
     tmpdir = f"{content_dir}_tmp"
     cat_types = ["artists", "flavors", "mediums", "movements"]
     try:
         os.makedirs(tmpdir, exist_ok=True)
         for category_type in cat_types:
+=======
+    print("Downloading CLIP categories...")
+
+    tmpdir = f"{content_dir}_tmp"
+    category_types = ["artists", "flavors", "mediums", "movements"]
+
+    try:
+        os.makedirs(tmpdir, exist_ok=True)
+        for category_type in category_types:
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             torch.hub.download_url_to_file(f"https://raw.githubusercontent.com/pharmapsychotic/clip-interrogator/main/clip_interrogator/data/{category_type}.txt", os.path.join(tmpdir, f"{category_type}.txt"))
         os.rename(tmpdir, content_dir)
     except Exception as e:
@@ -158,11 +173,19 @@ class InterrogateModels:
 
     def interrogate(self, pil_image):
         res = ""
+<<<<<<< HEAD
         shared.state.begin('interrogate')
         try:
             if shared.cmd_opts.lowvram or shared.cmd_opts.medvram:
                 lowvram.send_everything_to_cpu()
                 devices.torch_gc()
+=======
+        shared.state.begin(job="interrogate")
+        try:
+            lowvram.send_everything_to_cpu()
+            devices.torch_gc()
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             self.load()
             caption = self.generate_caption(pil_image)
             self.send_blip_to_ram()
@@ -172,15 +195,27 @@ class InterrogateModels:
             with devices.inference_context(), devices.autocast():
                 image_features = self.clip_model.encode_image(clip_image).type(self.dtype)
                 image_features /= image_features.norm(dim=-1, keepdim=True)
+<<<<<<< HEAD
                 for _name, topn, items in self.categories():
                     matches = self.rank(image_features, items, top_count=topn)
+=======
+
+                for cat in self.categories():
+                    matches = self.rank(image_features, cat.items, top_count=cat.topn)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
                     for match, score in matches:
                         if shared.opts.interrogate_return_ranks:
                             res += f", ({match}:{score/100:.3f})"
                         else:
                             res += f", {match}"
+<<<<<<< HEAD
         except Exception as e:
             errors.display(e, 'interrogate')
+=======
+
+        except Exception:
+            errors.report("Error interrogating", exc_info=True)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             res += "<error>"
         self.unload()
         shared.state.end()

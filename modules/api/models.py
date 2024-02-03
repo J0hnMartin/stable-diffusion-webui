@@ -1,9 +1,18 @@
 import inspect
+<<<<<<< HEAD
 from typing import Any, Optional, Dict, List
 from pydantic import BaseModel, Field, create_model # pylint: disable=no-name-in-module
 from inflection import underscore
 from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
 import modules.shared as shared
+=======
+
+from pydantic import BaseModel, Field, create_model
+from typing import Any, Optional, Literal
+from inflection import underscore
+from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
+from modules.shared import sd_upscalers, opts, parser
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 API_NOT_ALLOWED = [
     "self",
@@ -44,10 +53,18 @@ class PydanticModelGenerator:
         class_instance = None,
         additional_fields = None,
     ):
+<<<<<<< HEAD
         def field_type_generator(_k, v):
             # field_type = str if not overrides.get(k) else overrides[k]["type"]
             # print(k, v.annotation, v.default)
+=======
+        def field_type_generator(k, v):
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             field_type = v.annotation
+
+            if field_type == 'Image':
+                # images are sent as base64 strings via API
+                field_type = 'str'
 
             return Optional[field_type]
 
@@ -58,7 +75,6 @@ class PydanticModelGenerator:
                 parameters = {**parameters, **inspect.signature(classes.__init__).parameters}
             return parameters
 
-
         self._model_name = model_name
         self._class_data = merge_class_params(class_instance)
 
@@ -67,7 +83,7 @@ class PydanticModelGenerator:
                 field=underscore(k),
                 field_alias=k,
                 field_type=field_type_generator(k, v),
-                field_value=v.default
+                field_value=None if isinstance(v.default, property) else v.default
             )
             for (k,v) in self._class_data.items() if k not in API_NOT_ALLOWED
         ]
@@ -122,12 +138,12 @@ StableDiffusionImg2ImgProcessingAPI = PydanticModelGenerator(
 ).generate_model()
 
 class TextToImageResponse(BaseModel):
-    images: List[str] = Field(default=None, title="Image", description="The generated image in base64 format.")
+    images: list[str] = Field(default=None, title="Image", description="The generated image in base64 format.")
     parameters: dict
     info: str
 
 class ImageToImageResponse(BaseModel):
-    images: List[str] = Field(default=None, title="Image", description="The generated image in base64 format.")
+    images: list[str] = Field(default=None, title="Image", description="The generated image in base64 format.")
     parameters: dict
     info: str
 
@@ -160,10 +176,10 @@ class FileData(BaseModel):
     name: str = Field(title="File name")
 
 class ExtrasBatchImagesRequest(ExtrasBaseRequest):
-    imageList: List[FileData] = Field(title="Images", description="List of images to work on. Must be Base64 strings")
+    imageList: list[FileData] = Field(title="Images", description="List of images to work on. Must be Base64 strings")
 
 class ExtrasBatchImagesResponse(ExtraBaseResponse):
-    images: List[str] = Field(title="Images", description="The generated images in base64 format.")
+    images: list[str] = Field(title="Images", description="The generated images in base64 format.")
 
 class PNGInfoRequest(BaseModel):
     image: str = Field(title="Image", description="The base64 encoded PNG image")
@@ -172,10 +188,13 @@ class PNGInfoResponse(BaseModel):
     info: str = Field(title="Image info", description="A string with the parameters used to generate the image")
     items: dict = Field(title="Items", description="A dictionary containing all the other fields the image had")
     parameters: dict = Field(title="Parameters", description="A dictionary with parsed generation info fields")
+<<<<<<< HEAD
 
 class LogRequest(BaseModel):
     lines: int = Field(default=100, title="Lines", description="How many lines to return")
     clear: bool = Field(default=False, title="Clear", description="Should the log be cleared after returning the lines?")
+=======
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 class ProgressRequest(BaseModel):
     skip_current_image: bool = Field(default=False, title="Skip current image", description="Skip current image serialization")
@@ -200,10 +219,8 @@ class TrainResponse(BaseModel):
 class CreateResponse(BaseModel):
     info: str = Field(title="Create info", description="Response string from create embedding or hypernetwork task.")
 
-class PreprocessResponse(BaseModel):
-    info: str = Field(title="Preprocess info", description="Response string from preprocessing task.")
-
 fields = {}
+<<<<<<< HEAD
 for key, metadata in shared.opts.data_labels.items():
     value = shared.opts.data.get(key) or shared.opts.data_labels[key].default
     optType = shared.opts.typemap.get(type(metadata.default), type(value))
@@ -211,6 +228,14 @@ for key, metadata in shared.opts.data_labels.items():
     if metadata is not None:
         fields.update({key: (Optional[optType], Field(
             default=metadata.default, description=metadata.label))})
+=======
+for key, metadata in opts.data_labels.items():
+    value = opts.data.get(key)
+    optType = opts.typemap.get(type(metadata.default), type(metadata.default)) if metadata.default else Any
+
+    if metadata is not None:
+        fields.update({key: (Optional[optType], Field(default=metadata.default, description=metadata.label))})
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     else:
         fields.update({key: (Optional[optType], Field())})
 
@@ -230,8 +255,8 @@ FlagsModel = create_model("Flags", **flags)
 
 class SamplerItem(BaseModel):
     name: str = Field(title="Name")
-    aliases: List[str] = Field(title="Aliases")
-    options: Dict[str, str] = Field(title="Options")
+    aliases: list[str] = Field(title="Aliases")
+    options: dict[str, str] = Field(title="Options")
 
 class SDVaeItem(BaseModel):
     model_name: str = Field(title="Model Name")
@@ -244,6 +269,9 @@ class UpscalerItem(BaseModel):
     model_url: Optional[str] = Field(title="URL")
     scale: Optional[float] = Field(title="Scale")
 
+class LatentUpscalerModeItem(BaseModel):
+    name: str = Field(title="Name")
+
 class SDModelItem(BaseModel):
     title: str = Field(title="Title")
     model_name: str = Field(title="Model Name")
@@ -252,6 +280,10 @@ class SDModelItem(BaseModel):
     sha256: Optional[str] = Field(title="SHA256 hash")
     hash: Optional[str] = Field(title="Short hash")
     config: Optional[str] = Field(title="Config file")
+
+class SDVaeItem(BaseModel):
+    model_name: str = Field(title="Model Name")
+    filename: str = Field(title="Filename")
 
 class HypernetworkItem(BaseModel):
     name: str = Field(title="Name")
@@ -287,10 +319,6 @@ class ExtraNetworkItem(BaseModel):
     # metadata: Optional[Any] = Field(title="Metadata")
     # local: Optional[str] = Field(title="Local")
 
-class ArtistItem(BaseModel):
-    name: str = Field(title="Name")
-    score: float = Field(title="Score")
-    category: str = Field(title="Category")
 
 class EmbeddingItem(BaseModel):
     step: Optional[int] = Field(title="Step", description="The number of steps that were used to train this embedding, if available")
@@ -300,30 +328,44 @@ class EmbeddingItem(BaseModel):
     vectors: int = Field(title="Vectors", description="The number of vectors in the embedding")
 
 class EmbeddingsResponse(BaseModel):
-    loaded: Dict[str, EmbeddingItem] = Field(title="Loaded", description="Embeddings loaded for the current model")
-    skipped: Dict[str, EmbeddingItem] = Field(title="Skipped", description="Embeddings skipped for the current model (likely due to architecture incompatibility)")
+    loaded: dict[str, EmbeddingItem] = Field(title="Loaded", description="Embeddings loaded for the current model")
+    skipped: dict[str, EmbeddingItem] = Field(title="Skipped", description="Embeddings skipped for the current model (likely due to architecture incompatibility)")
 
 class MemoryResponse(BaseModel):
     ram: dict = Field(title="RAM", description="System memory stats")
     cuda: dict = Field(title="CUDA", description="nVidia CUDA memory stats")
 
+
 class ScriptsList(BaseModel):
     txt2img: list = Field(default=None, title="Txt2img", description="Titles of scripts (txt2img)")
     img2img: list = Field(default=None, title="Img2img", description="Titles of scripts (img2img)")
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 class ScriptArg(BaseModel):
     label: str = Field(default=None, title="Label", description="Name of the argument in UI")
     value: Optional[Any] = Field(default=None, title="Value", description="Default value of the argument")
     minimum: Optional[Any] = Field(default=None, title="Minimum", description="Minimum allowed value for the argumentin UI")
     maximum: Optional[Any] = Field(default=None, title="Minimum", description="Maximum allowed value for the argumentin UI")
     step: Optional[Any] = Field(default=None, title="Minimum", description="Step for changing value of the argumentin UI")
+<<<<<<< HEAD
     choices: Optional[Any] = Field(default=None, title="Choices", description="Possible values for the argument")
+=======
+    choices: Optional[list[str]] = Field(default=None, title="Choices", description="Possible values for the argument")
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 class ScriptInfo(BaseModel):
     name: str = Field(default=None, title="Name", description="Script name")
     is_alwayson: bool = Field(default=None, title="IsAlwayson", description="Flag specifying whether this script is an alwayson script")
     is_img2img: bool = Field(default=None, title="IsImg2img", description="Flag specifying whether this script is an img2img script")
+<<<<<<< HEAD
     args: List[ScriptArg] = Field(title="Arguments", description="List of script's arguments")
+=======
+    args: list[ScriptArg] = Field(title="Arguments", description="List of script's arguments")
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 class ExtensionItem(BaseModel):
     name: str = Field(title="Name", description="Extension name")

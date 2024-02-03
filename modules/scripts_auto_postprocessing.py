@@ -16,8 +16,14 @@ class ScriptPostprocessingForMainUI(scripts.Script):
         self.postprocessing_controls = self.script.ui()
         return self.postprocessing_controls.values()
 
+<<<<<<< HEAD
     def postprocess_image(self, p, script_pp, *args): # pylint: disable=arguments-differ
         args_dict = dict(zip(self.postprocessing_controls, args))
+=======
+    def postprocess_image(self, p, script_pp, *args):
+        args_dict = dict(zip(self.postprocessing_controls, args))
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         pp = scripts_postprocessing.PostprocessedImage(script_pp.image)
         pp.info = {}
         self.script.process(pp, **args_dict)

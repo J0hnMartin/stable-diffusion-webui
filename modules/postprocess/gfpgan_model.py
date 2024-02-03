@@ -1,4 +1,10 @@
 import os
+<<<<<<< HEAD:modules/postprocess/gfpgan_model.py
+=======
+
+import facexlib
+import gfpgan
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/gfpgan_model.py
 
 import modules.face_restoration
 from modules import paths, shared, devices, modelloader, errors
@@ -6,31 +12,51 @@ from modules import paths, shared, devices, modelloader, errors
 model_dir = "GFPGAN"
 user_path = None
 model_path = os.path.join(paths.models_path, model_dir)
+model_file_path = None
 model_url = "https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.4.pth"
 have_gfpgan = False
 loaded_gfpgan_model = None
 
 
 def gfpgann():
+<<<<<<< HEAD:modules/postprocess/gfpgan_model.py
     import facexlib
     import gfpgan # pylint: disable=unused-import
     global loaded_gfpgan_model # pylint: disable=global-statement
+=======
+    global loaded_gfpgan_model
+    global model_path
+    global model_file_path
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/gfpgan_model.py
     if loaded_gfpgan_model is not None:
         loaded_gfpgan_model.gfpgan.to(devices.device_gfpgan)
         return loaded_gfpgan_model
     if gfpgan_constructor is None:
         return None
+<<<<<<< HEAD:modules/postprocess/gfpgan_model.py
     models = modelloader.load_models(model_path, model_url, user_path, ext_filter="GFPGAN")
     if len(models) == 1 and "http" in models[0]:
+=======
+
+    models = modelloader.load_models(model_path, model_url, user_path, ext_filter=['.pth'])
+
+    if len(models) == 1 and models[0].startswith("http"):
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/gfpgan_model.py
         model_file = models[0]
     elif len(models) != 0:
-        latest_file = max(models, key=os.path.getctime)
+        gfp_models = []
+        for item in models:
+            if 'GFPGAN' in os.path.basename(item):
+                gfp_models.append(item)
+        latest_file = max(gfp_models, key=os.path.getctime)
         model_file = latest_file
     else:
         shared.log.error(f"Model failed loading: type=GFPGAN model={model_file}")
         return None
+
     if hasattr(facexlib.detection.retinaface, 'device'):
         facexlib.detection.retinaface.device = devices.device_gfpgan
+    model_file_path = model_file
     model = gfpgan_constructor(model_path=model_file, upscale=1, arch='clean', channel_multiplier=2, bg_upsampler=None, device=devices.device_gfpgan)
     loaded_gfpgan_model = model
     shared.log.info(f"Model loaded: type=GFPGAN model={model_file}")
@@ -66,6 +92,7 @@ gfpgan_constructor = None
 
 
 def setup_model(dirname):
+<<<<<<< HEAD:modules/postprocess/gfpgan_model.py
     if not os.path.exists(model_path):
         os.makedirs(model_path)
 
@@ -76,19 +103,34 @@ def setup_model(dirname):
         global user_path # pylint: disable=global-statement
         global have_gfpgan # pylint: disable=global-statement
         global gfpgan_constructor # pylint: disable=global-statement
+=======
+    try:
+        os.makedirs(model_path, exist_ok=True)
+        from gfpgan import GFPGANer
+        from facexlib import detection, parsing  # noqa: F401
+        global user_path
+        global have_gfpgan
+        global gfpgan_constructor
+        global model_file_path
+
+        facexlib_path = model_path
+
+        if dirname is not None:
+            facexlib_path = dirname
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/gfpgan_model.py
 
         load_file_from_url_orig = gfpgan.utils.load_file_from_url
         facex_load_file_from_url_orig = facexlib.detection.load_file_from_url
         facex_load_file_from_url_orig2 = facexlib.parsing.load_file_from_url
 
         def my_load_file_from_url(**kwargs):
-            return load_file_from_url_orig(**dict(kwargs, model_dir=model_path))
+            return load_file_from_url_orig(**dict(kwargs, model_dir=model_file_path))
 
         def facex_load_file_from_url(**kwargs):
-            return facex_load_file_from_url_orig(**dict(kwargs, save_dir=model_path, model_dir=None))
+            return facex_load_file_from_url_orig(**dict(kwargs, save_dir=facexlib_path, model_dir=None))
 
         def facex_load_file_from_url2(**kwargs):
-            return facex_load_file_from_url_orig2(**dict(kwargs, save_dir=model_path, model_dir=None))
+            return facex_load_file_from_url_orig2(**dict(kwargs, save_dir=facexlib_path, model_dir=None))
 
         gfpgan.utils.load_file_from_url = my_load_file_from_url
         facexlib.detection.load_file_from_url = facex_load_file_from_url
@@ -105,5 +147,10 @@ def setup_model(dirname):
                 return gfpgan_fix_faces(np_image)
 
         shared.face_restorers.append(FaceRestorerGFPGAN())
+<<<<<<< HEAD:modules/postprocess/gfpgan_model.py
     except Exception as e:
         errors.display(e, 'gfpgan')
+=======
+    except Exception:
+        errors.report("Error setting up GFPGAN", exc_info=True)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/gfpgan_model.py

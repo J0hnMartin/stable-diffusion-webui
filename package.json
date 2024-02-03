@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "@vladmandic/automatic",
   "version": "dev",
   "description": "SD.Next: Opinionated implementation of Stable Diffusion",
@@ -22,5 +23,15 @@
   },
   "dependencies": {
     "eslint-plugin-json": "^3.1.0"
+=======
+  "name": "stable-diffusion-webui",
+  "version": "0.0.0",
+  "devDependencies": {
+    "eslint": "^8.40.0"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "fix": "eslint --fix ."
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
   }
 }

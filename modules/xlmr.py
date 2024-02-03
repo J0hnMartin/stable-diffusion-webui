@@ -1,3 +1,11 @@
+<<<<<<< HEAD
+=======
+from transformers import BertPreTrainedModel, BertConfig
+import torch.nn as nn
+import torch
+from transformers.models.xlm_roberta.configuration_xlm_roberta import XLMRobertaConfig
+from transformers import XLMRobertaModel,XLMRobertaTokenizer
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 from typing import Optional
 import torch
 import torch.nn as nn
@@ -26,7 +34,11 @@ class BertSeriesModelWithTransformation(BertPreTrainedModel):
     _keys_to_ignore_on_load_missing = [r"position_ids", r"predictions.decoder.bias"]
     config_class = BertSeriesConfig
 
+<<<<<<< HEAD
     def __init__(self, config=None, **kargs): # pylint: disable=unused-argument
+=======
+    def __init__(self, config=None, **kargs):
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         # modify initialization for autoloading
         if config is None:
             config = XLMRobertaConfig()

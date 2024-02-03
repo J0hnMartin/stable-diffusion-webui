@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+from __future__ import annotations
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 import os
 import time
 import shutil
@@ -504,6 +509,29 @@ def load_file_from_url(url: str, *, model_dir: str, progress: bool = True, file_
     return cached_file
 
 
+def load_file_from_url(
+    url: str,
+    *,
+    model_dir: str,
+    progress: bool = True,
+    file_name: str | None = None,
+) -> str:
+    """Download a file from `url` into `model_dir`, using the file present if possible.
+
+    Returns the path to the downloaded file.
+    """
+    os.makedirs(model_dir, exist_ok=True)
+    if not file_name:
+        parts = urlparse(url)
+        file_name = os.path.basename(parts.path)
+    cached_file = os.path.abspath(os.path.join(model_dir, file_name))
+    if not os.path.exists(cached_file):
+        print(f'Downloading: "{url}" to {cached_file}\n')
+        from torch.hub import download_url_to_file
+        download_url_to_file(url, cached_file, progress=progress)
+    return cached_file
+
+
 def load_models(model_path: str, model_url: str = None, command_path: str = None, ext_filter=None, download_name=None, ext_blacklist=None) -> list:
     """
     A one-and done loader to try finding the desired models in specified directories.
@@ -516,12 +544,42 @@ def load_models(model_path: str, model_url: str = None, command_path: str = None
     """
     places = directories_unique([model_path, command_path])
     output = []
+<<<<<<< HEAD
     try:
         output:list = [*filter(extension_filter(ext_filter, ext_blacklist), directory_files(*places))]
         if model_url is not None and len(output) == 0:
             if download_name is not None:
                 dl = load_file_from_url(model_url, model_dir=places[0], progress=True, file_name=download_name)
                 output.append(dl)
+=======
+
+    try:
+        places = []
+
+        if command_path is not None and command_path != model_path:
+            pretrained_path = os.path.join(command_path, 'experiments/pretrained_models')
+            if os.path.exists(pretrained_path):
+                print(f"Appending path: {pretrained_path}")
+                places.append(pretrained_path)
+            elif os.path.exists(command_path):
+                places.append(command_path)
+
+        places.append(model_path)
+
+        for place in places:
+            for full_path in shared.walk_files(place, allowed_extensions=ext_filter):
+                if os.path.islink(full_path) and not os.path.exists(full_path):
+                    print(f"Skipping broken symlink: {full_path}")
+                    continue
+                if ext_blacklist is not None and any(full_path.endswith(x) for x in ext_blacklist):
+                    continue
+                if full_path not in output:
+                    output.append(full_path)
+
+        if model_url is not None and len(output) == 0:
+            if download_name is not None:
+                output.append(load_file_from_url(model_url, model_dir=places[0], file_name=download_name))
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             else:
                 output.append(model_url)
     except Exception as e:
@@ -530,7 +588,7 @@ def load_models(model_path: str, model_url: str = None, command_path: str = None
 
 
 def friendly_name(file: str):
-    if "http" in file:
+    if file.startswith("http"):
         file = urlparse(file).path
     file = os.path.basename(file)
     model_name, _extension = os.path.splitext(file)
@@ -575,8 +633,7 @@ def cleanup_models():
 
 def move_files(src_path: str, dest_path: str, ext_filter: str = None):
     try:
-        if not os.path.exists(dest_path):
-            os.makedirs(dest_path)
+        os.makedirs(dest_path, exist_ok=True)
         if os.path.exists(src_path):
             for file in os.listdir(src_path):
                 fullpath = os.path.join(src_path, file)
@@ -606,17 +663,33 @@ def load_upscalers():
             full_model = f"modules.postprocess.{model_name}_model"
             try:
                 importlib.import_module(full_model)
+<<<<<<< HEAD
             except Exception as e:
                 shared.log.error(f'Error loading upscaler: {model_name} {e}')
     datas = []
     commandline_options = vars(shared.cmd_opts)
     # some of upscaler classes will not go away after reloading their modules, and we'll end up with two copies of those classes. The newest copy will always be the last in the list, so we go from end to beginning and ignore duplicates
+=======
+            except Exception:
+                pass
+
+    datas = []
+    commandline_options = vars(shared.cmd_opts)
+
+    # some of upscaler classes will not go away after reloading their modules, and we'll end
+    # up with two copies of those classes. The newest copy will always be the last in the list,
+    # so we go from end to beginning and ignore duplicates
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     used_classes = {}
     for cls in reversed(Upscaler.__subclasses__()):
         classname = str(cls)
         if classname not in used_classes:
             used_classes[classname] = cls
+<<<<<<< HEAD
     names = []
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     for cls in reversed(used_classes.values()):
         name = cls.__name__
         cmd_name = f"{name.lower().replace('upscaler', '')}_models_path"

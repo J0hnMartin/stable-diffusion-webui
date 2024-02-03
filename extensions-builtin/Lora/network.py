@@ -3,7 +3,11 @@ import os
 from collections import namedtuple
 import enum
 
+<<<<<<< HEAD
 from modules import sd_models, hashes, shared
+=======
+from modules import sd_models, cache, errors, hashes, shared
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 NetworkWeights = namedtuple('NetworkWeights', ['network_key', 'sd_key', 'w', 'sd_module'])
 
@@ -24,6 +28,7 @@ class NetworkOnDisk:
         self.metadata = {}
         self.is_safetensors = os.path.splitext(filename)[1].lower() == ".safetensors"
 
+<<<<<<< HEAD
         def read_metadata(): #  # pylint: disable=W0612
             metadata = sd_models.read_metadata_from_safetensors(filename)
             metadata.pop('ssmd_cover_images', None)  # those are cover images, and they are too big to display in UI as text
@@ -32,18 +37,38 @@ class NetworkOnDisk:
         if self.is_safetensors:
             self.metadata = sd_models.read_metadata_from_safetensors(filename)
             """
+=======
+        def read_metadata():
+            metadata = sd_models.read_metadata_from_safetensors(filename)
+            metadata.pop('ssmd_cover_images', None)  # those are cover images, and they are too big to display in UI as text
+
+            return metadata
+
+        if self.is_safetensors:
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             try:
                 self.metadata = cache.cached_data_for_file('safetensors-metadata', "lora/" + self.name, filename, read_metadata)
             except Exception as e:
                 errors.display(e, f"reading lora {filename}")
+<<<<<<< HEAD
             """
+=======
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
         if self.metadata:
             m = {}
             for k, v in sorted(self.metadata.items(), key=lambda x: metadata_tags_order.get(x[0], 999)):
                 m[k] = v
+<<<<<<< HEAD
             self.metadata = m
         self.alias = self.metadata.get('ss_output_name', self.name)
+=======
+
+            self.metadata = m
+
+        self.alias = self.metadata.get('ss_output_name', self.name)
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         self.hash = None
         self.shorthash = None
         self.set_hash(
@@ -51,6 +76,10 @@ class NetworkOnDisk:
             hashes.sha256_from_cache(self.filename, "lora/" + self.name, use_addnet_hash=self.is_safetensors) or
             ''
         )
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         self.sd_version = self.detect_version()
 
     def detect_version(self):
@@ -60,11 +89,19 @@ class NetworkOnDisk:
             return SdVersion.SD2
         elif len(self.metadata):
             return SdVersion.SD1
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         return SdVersion.Unknown
 
     def set_hash(self, v):
         self.hash = v
         self.shorthash = self.hash[0:12]
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         if self.shorthash:
             import networks
             networks.available_network_hash_lookup[self.shorthash] = self
@@ -75,7 +112,14 @@ class NetworkOnDisk:
 
     def get_alias(self):
         import networks
+<<<<<<< HEAD
         return self.name if shared.opts.lora_preferred_name == "filename" or self.alias.lower() in networks.forbidden_network_aliases else self.alias
+=======
+        if shared.opts.lora_preferred_name == "Filename" or self.alias.lower() in networks.forbidden_network_aliases:
+            return self.name
+        else:
+            return self.alias
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 class Network:  # LoraModule
@@ -83,16 +127,29 @@ class Network:  # LoraModule
         self.name = name
         self.network_on_disk = network_on_disk
         self.te_multiplier = 1.0
+<<<<<<< HEAD
         self.unet_multiplier = [1.0] * 3
         self.dyn_dim = None
         self.modules = {}
         self.mtime = None
+=======
+        self.unet_multiplier = 1.0
+        self.dyn_dim = None
+        self.modules = {}
+        self.bundle_embeddings = {}
+        self.mtime = None
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         self.mentioned_name = None
         """the text that was used to add the network to prompt - can be either name or an alias"""
 
 
 class ModuleType:
+<<<<<<< HEAD
     def create_module(self, net: Network, weights: NetworkWeights) -> Network | None: # pylint: disable=W0613
+=======
+    def create_module(self, net: Network, weights: NetworkWeights) -> Network | None:
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         return None
 
 
@@ -102,8 +159,15 @@ class NetworkModule:
         self.network_key = weights.network_key
         self.sd_key = weights.sd_key
         self.sd_module = weights.sd_module
+<<<<<<< HEAD
         if hasattr(self.sd_module, 'weight'):
             self.shape = self.sd_module.weight.shape
+=======
+
+        if hasattr(self.sd_module, 'weight'):
+            self.shape = self.sd_module.weight.shape
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         self.dim = None
         self.bias = weights.w.get("bias")
         self.alpha = weights.w["alpha"].item() if "alpha" in weights.w else None
@@ -112,6 +176,7 @@ class NetworkModule:
     def multiplier(self):
         if 'transformer' in self.sd_key[:20]:
             return self.network.te_multiplier
+<<<<<<< HEAD
         if "down_blocks" in self.sd_key:
             return self.network.unet_multiplier[0]
         if "mid_block" in self.sd_key:
@@ -120,12 +185,20 @@ class NetworkModule:
             return self.network.unet_multiplier[2]
         else:
             return self.network.unet_multiplier[0]
+=======
+        else:
+            return self.network.unet_multiplier
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
     def calc_scale(self):
         if self.scale is not None:
             return self.scale
         if self.dim is not None and self.alpha is not None:
             return self.alpha / self.dim
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         return 1.0
 
     def finalize_updown(self, updown, orig_weight, output_shape, ex_bias=None):
@@ -133,12 +206,25 @@ class NetworkModule:
             updown = updown.reshape(self.bias.shape)
             updown += self.bias.to(orig_weight.device, dtype=orig_weight.dtype)
             updown = updown.reshape(output_shape)
+<<<<<<< HEAD
         if len(output_shape) == 4:
             updown = updown.reshape(output_shape)
         if orig_weight.size().numel() == updown.size().numel():
             updown = updown.reshape(orig_weight.shape)
         if ex_bias is not None:
             ex_bias = ex_bias * self.multiplier()
+=======
+
+        if len(output_shape) == 4:
+            updown = updown.reshape(output_shape)
+
+        if orig_weight.size().numel() == updown.size().numel():
+            updown = updown.reshape(orig_weight.shape)
+
+        if ex_bias is not None:
+            ex_bias = ex_bias * self.multiplier()
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         return updown * self.calc_scale() * self.multiplier(), ex_bias
 
     def calc_updown(self, target):
@@ -146,3 +232,7 @@ class NetworkModule:
 
     def forward(self, x, y):
         raise NotImplementedError()
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e

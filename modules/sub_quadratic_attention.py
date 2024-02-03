@@ -16,6 +16,11 @@ from typing import Optional, NamedTuple, List
 import torch
 from torch import Tensor
 from torch.utils.checkpoint import checkpoint
+<<<<<<< HEAD
+=======
+import math
+from typing import Optional, NamedTuple
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 def narrow_trunc(
@@ -58,7 +63,7 @@ def _summarize_chunk(
     scale: float,
 ) -> AttnChunk:
     attn_weights = torch.baddbmm(
-        torch.empty(1, 1, 1, device=query.device, dtype=query.dtype),
+        torch.zeros(1, 1, 1, device=query.device, dtype=query.dtype),
         query,
         key.transpose(1,2),
         alpha=scale,
@@ -97,7 +102,7 @@ def _query_chunk_attention(
         )
         return summarize_chunk(query, key_chunk, value_chunk)
 
-    chunks: List[AttnChunk] = [
+    chunks: list[AttnChunk] = [
         chunk_scanner(chunk) for chunk in torch.arange(0, k_tokens, kv_chunk_size)
     ]
     acc_chunk = AttnChunk(*map(torch.stack, zip(*chunks)))
@@ -120,7 +125,7 @@ def _get_attention_scores_no_kv_chunking(
     scale: float,
 ) -> Tensor:
     attn_scores = torch.baddbmm(
-        torch.empty(1, 1, 1, device=query.device, dtype=query.dtype),
+        torch.zeros(1, 1, 1, device=query.device, dtype=query.dtype),
         query,
         key.transpose(1,2),
         alpha=scale,
@@ -201,11 +206,19 @@ def efficient_dot_product_attention(
             value=value,
         )
 
+<<<<<<< HEAD
     res = torch.cat([
         compute_query_chunk_attn(
+=======
+    res = torch.zeros_like(query)
+    for i in range(math.ceil(q_tokens / query_chunk_size)):
+        attn_scores = compute_query_chunk_attn(
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
             query=get_query_chunk(i * query_chunk_size),
             key=key,
             value=value,
-        ) for i in range(math.ceil(q_tokens / query_chunk_size))
-    ], dim=1)
+        )
+
+        res[:, i * query_chunk_size:i * query_chunk_size + attn_scores.shape[1], :] = attn_scores
+
     return res

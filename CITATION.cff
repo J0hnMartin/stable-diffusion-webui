@@ -1,4 +1,5 @@
 cff-version: 1.2.0
+<<<<<<< HEAD
 title: SD.Next
 url: 'https://github.com/vladmandic/automatic'
 message: >-
@@ -26,3 +27,11 @@ keywords:
   - stablediffusion diffusers sdnext
 license: AGPL-3.0
 date-released: 2022-12-24
+=======
+message: "If you use this software, please cite it as below."
+authors:
+  - given-names: AUTOMATIC1111
+title: "Stable Diffusion Web UI"
+date-released: 2022-08-22
+url: "https://github.com/AUTOMATIC1111/stable-diffusion-webui"
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e

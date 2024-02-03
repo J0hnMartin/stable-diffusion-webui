@@ -9,8 +9,12 @@ from omegaconf import OmegaConf
 import safetensors.torch
 from ldm.models.diffusion.ddim import DDIMSampler
 from ldm.util import instantiate_from_config, ismap
+<<<<<<< HEAD:modules/ldsr/ldsr_model_arch.py
 from modules import devices, shared, sd_hijack
 from modules.upscaler import compile_upscaler
+=======
+from modules import shared, sd_hijack, devices
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:extensions-builtin/LDSR/ldsr_model_arch.py
 
 cached_ldsr_model: torch.nn.Module = None
 
@@ -100,6 +104,14 @@ class LDSR:
         # Run settings
         diffusion_steps = int(steps)
         eta = 1.0
+<<<<<<< HEAD:modules/ldsr/ldsr_model_arch.py
+=======
+
+
+        gc.collect()
+        devices.torch_gc()
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:extensions-builtin/LDSR/ldsr_model_arch.py
         im_og = image
         width_og, height_og = im_og.size
         # If we can adjust the max upscale size, then the 4 below should be our variable
@@ -112,7 +124,11 @@ class LDSR:
             shared.log.info(f'LDSR Downsampling from [{width_og}, {height_og}] to [{width_downsampled_pre}, {height_downsampled_pre}]')
             im_og = im_og.resize((width_downsampled_pre, height_downsampled_pre), Image.LANCZOS)
         else:
+<<<<<<< HEAD:modules/ldsr/ldsr_model_arch.py
             shared.log.info(f"LDSR Downsample rate is 1 from {target_scale} / 4 (Not downsampling)")
+=======
+            print(f"Down sample rate is 1 from {target_scale} / 4 (Not downsampling)")
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:extensions-builtin/LDSR/ldsr_model_arch.py
 
         # pad width and height to multiples of 64, pads with the edge values of image to avoid artifacts
         pad_w, pad_h = np.max(((2, 2), np.ceil(np.array(im_og.size) / 64).astype(int)), axis=0) * 64 - im_og.size
@@ -130,12 +146,18 @@ class LDSR:
         # remove padding
         a = a.crop((0, 0) + tuple(np.array(im_og.size) * 4))
 
+<<<<<<< HEAD:modules/ldsr/ldsr_model_arch.py
         if shared.opts.upscaler_unload:
             del model
             global cached_ldsr_model # pylint: disable=global-statement
             cached_ldsr_model = None
             shared.log.debug(f"Upscaler unloaded: type=LDSR model={self.modelPath}")
             devices.torch_gc(force=True)
+=======
+        del model
+        gc.collect()
+        devices.torch_gc()
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:extensions-builtin/LDSR/ldsr_model_arch.py
 
         return a
 

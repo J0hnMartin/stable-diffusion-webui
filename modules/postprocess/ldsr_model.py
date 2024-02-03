@@ -1,4 +1,5 @@
 import os
+<<<<<<< HEAD:modules/postprocess/ldsr_model.py
 import sys
 import traceback
 
@@ -7,6 +8,15 @@ from modules.ldsr.ldsr_model_arch import LDSR
 from modules import shared, script_callbacks
 import modules.ldsr.sd_hijack_autoencoder # pylint: disable=unused-import
 import modules.ldsr.sd_hijack_ddpm_v1 # pylint: disable=unused-import
+=======
+
+from modules.modelloader import load_file_from_url
+from modules.upscaler import Upscaler, UpscalerData
+from ldsr_model_arch import LDSR
+from modules import shared, script_callbacks, errors
+import sd_hijack_autoencoder  # noqa: F401
+import sd_hijack_ddpm_v1  # noqa: F401
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:extensions-builtin/LDSR/scripts/ldsr_model.py
 
 
 class UpscalerLDSR(Upscaler):
@@ -40,6 +50,7 @@ class UpscalerLDSR(Upscaler):
             print("Renaming model from model.pth to model.ckpt")
             os.rename(old_model_path, new_model_path)
 
+<<<<<<< HEAD:modules/postprocess/ldsr_model.py
         from modules.modelloader import load_file_from_url
         if local_safetensors_path is not None and os.path.exists(local_safetensors_path):
             model = local_safetensors_path
@@ -47,19 +58,29 @@ class UpscalerLDSR(Upscaler):
             model = local_ckpt_path if local_ckpt_path is not None else load_file_from_url(url=self.model_url, model_dir=self.model_download_path, file_name="model.ckpt", progress=True)
 
         yaml = local_yaml_path if local_yaml_path is not None else load_file_from_url(url=self.yaml_url, model_dir=self.model_download_path, file_name="project.yaml", progress=True)
+=======
+        if local_safetensors_path is not None and os.path.exists(local_safetensors_path):
+            model = local_safetensors_path
+        else:
+            model = local_ckpt_path or load_file_from_url(self.model_url, model_dir=self.model_download_path, file_name="model.ckpt")
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:extensions-builtin/LDSR/scripts/ldsr_model.py
 
-        try:
-            return LDSR(model, yaml)
+        yaml = local_yaml_path or load_file_from_url(self.yaml_url, model_dir=self.model_download_path, file_name="project.yaml")
 
-        except Exception:
-            print("Error importing LDSR:", file=sys.stderr)
-            print(traceback.format_exc(), file=sys.stderr)
-        return None
+        return LDSR(model, yaml)
 
+<<<<<<< HEAD:modules/postprocess/ldsr_model.py
     def do_upscale(self, img, selected_model):
         ldsr = self.load_model(selected_model)
         if ldsr is None:
             print("NO LDSR!")
+=======
+    def do_upscale(self, img, path):
+        try:
+            ldsr = self.load_model(path)
+        except Exception:
+            errors.report(f"Failed loading LDSR model {path}", exc_info=True)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:extensions-builtin/LDSR/scripts/ldsr_model.py
             return img
         ddim_steps = shared.opts.ldsr_steps
         return ldsr.super_resolution(img, ddim_steps, self.scale)

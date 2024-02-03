@@ -1,7 +1,15 @@
 import os
+<<<<<<< HEAD:modules/postprocess/codeformer_model.py
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/codeformer_model.py
 import cv2
 import torch
 import modules.face_restoration
+<<<<<<< HEAD:modules/postprocess/codeformer_model.py
+=======
+import modules.shared
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/codeformer_model.py
 from modules import shared, devices, modelloader, errors
 from modules.paths import models_path
 
@@ -12,20 +20,28 @@ model_dir = "Codeformer"
 model_path = os.path.join(models_path, model_dir)
 model_url = 'https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth'
 
-have_codeformer = False
 codeformer = None
 
 
 def setup_model(dirname):
+<<<<<<< HEAD:modules/postprocess/codeformer_model.py
     if not os.path.exists(model_path):
         os.makedirs(model_path)
+=======
+    os.makedirs(model_path, exist_ok=True)
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/codeformer_model.py
     path = modules.paths.paths.get("CodeFormer", None)
     if path is None:
         return
 
     try:
         from torchvision.transforms.functional import normalize
+<<<<<<< HEAD:modules/postprocess/codeformer_model.py
         from modules.postprocess.codeformer_arch import CodeFormer
+=======
+        from modules.codeformer.codeformer_arch import CodeFormer
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/codeformer_model.py
         from basicsr.utils import img2tensor, tensor2img
         from facelib.utils.face_restoration_helper import FaceRestoreHelper
         from facelib.detection.retinaface import retinaface
@@ -79,6 +95,10 @@ def setup_model(dirname):
                 self.face_helper.read_image(np_image)
                 self.face_helper.get_face_landmarks_5(only_center_face=False, resize=640, eye_dist_threshold=5)
                 self.face_helper.align_warp_face()
+<<<<<<< HEAD:modules/postprocess/codeformer_model.py
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/codeformer_model.py
                 for cropped_face in self.face_helper.cropped_faces:
                     cropped_face_t = img2tensor(cropped_face / 255., bgr2rgb=True, float32=True)
                     normalize(cropped_face_t, (0.5, 0.5, 0.5), (0.5, 0.5, 0.5), inplace=True)
@@ -89,8 +109,13 @@ def setup_model(dirname):
                             restored_face = tensor2img(output, rgb2bgr=True, min_max=(-1, 1))
                         del output
                         devices.torch_gc()
+<<<<<<< HEAD:modules/postprocess/codeformer_model.py
                     except Exception as e:
                         shared.log.error(f'CodeForomer error: {e}')
+=======
+                    except Exception:
+                        errors.report('Failed inference for CodeFormer', exc_info=True)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/codeformer_model.py
                         restored_face = tensor2img(cropped_face_t, rgb2bgr=True, min_max=(-1, 1))
                     restored_face = restored_face.astype('uint8')
                     self.face_helper.add_restored_face(restored_face)
@@ -104,6 +129,7 @@ def setup_model(dirname):
                     self.send_model_to(devices.cpu)
                 return restored_img
 
+<<<<<<< HEAD:modules/postprocess/codeformer_model.py
         global have_codeformer # pylint: disable=global-statement
         have_codeformer = True
         global codeformer # pylint: disable=global-statement
@@ -112,3 +138,13 @@ def setup_model(dirname):
 
     except Exception as e:
         errors.display(e, 'codeformer')
+=======
+        global codeformer
+        codeformer = FaceRestorerCodeFormer(dirname)
+        shared.face_restorers.append(codeformer)
+
+    except Exception:
+        errors.report("Error setting up CodeFormer", exc_info=True)
+
+   # sys.path = stored_sys_path
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:modules/codeformer_model.py

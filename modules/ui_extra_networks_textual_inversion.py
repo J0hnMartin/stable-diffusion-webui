@@ -1,8 +1,13 @@
-import json
 import os
+<<<<<<< HEAD
 import concurrent
 from modules import shared, sd_hijack, sd_models, ui_extra_networks
 from modules.textual_inversion.textual_inversion import Embedding
+=======
+
+from modules import ui_extra_networks, sd_hijack, shared
+from modules.ui_extra_networks import quote_js
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 class ExtraNetworksPageTextualInversion(ui_extra_networks.ExtraNetworksPage):
@@ -45,7 +50,26 @@ class ExtraNetworksPageTextualInversion(ui_extra_networks.ExtraNetworksPage):
             shared.log.debug(f"Extra networks error: type=embedding file={embedding.filename} {e}")
         return record
 
+    def create_item(self, name, index=None, enable_filter=True):
+        embedding = sd_hijack.model_hijack.embedding_db.word_embeddings.get(name)
+        if embedding is None:
+            return
+
+        path, ext = os.path.splitext(embedding.filename)
+        return {
+            "name": name,
+            "filename": embedding.filename,
+            "shorthash": embedding.shorthash,
+            "preview": self.find_preview(path),
+            "description": self.find_description(path),
+            "search_term": self.search_terms_from_path(embedding.filename) + " " + (embedding.hash or ""),
+            "prompt": quote_js(embedding.name),
+            "local_preview": f"{path}.preview.{shared.opts.samples_format}",
+            "sort_keys": {'default': index, **self.get_sort_keys(embedding.filename)},
+        }
+
     def list_items(self):
+<<<<<<< HEAD
 
         def list_folder(folder):
             for filename in os.listdir(folder):
@@ -74,6 +98,14 @@ class ExtraNetworksPageTextualInversion(ui_extra_networks.ExtraNetworksPage):
                 item = future.result()
                 if item is not None:
                     yield item
+=======
+        # instantiate a list to protect against concurrent modification
+        names = list(sd_hijack.model_hijack.embedding_db.word_embeddings)
+        for index, name in enumerate(names):
+            item = self.create_item(name, index)
+            if item is not None:
+                yield item
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
     def allowed_directories_for_previews(self):
         return list(sd_hijack.model_hijack.embedding_db.embedding_dirs)

@@ -1,14 +1,27 @@
 import gc
 import sys
 import contextlib
+from functools import lru_cache
+
 import torch
+<<<<<<< HEAD
 from modules.errors import log
 from modules import cmd_args, shared, memstats
+=======
+from modules import errors, shared
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 if sys.platform == "darwin":
     from modules import mac_specific # pylint: disable=ungrouped-imports
 
 previous_oom = 0
+
+if shared.cmd_opts.use_ipex:
+    from modules import xpu_specific
+
+
+def has_xpu() -> bool:
+    return shared.cmd_opts.use_ipex and xpu_specific.has_xpu
 
 
 def has_mps() -> bool:
@@ -17,6 +30,7 @@ def has_mps() -> bool:
     else:
         return mac_specific.has_mps # pylint: disable=used-before-assignment
 
+<<<<<<< HEAD
 
 def get_gpu_info():
     def get_driver():
@@ -101,6 +115,14 @@ def get_cuda_device_string():
         if shared.cmd_opts.device_id is not None:
             return f"cuda:{shared.cmd_opts.device_id}"
         return "cuda"
+=======
+
+def get_cuda_device_string():
+    if shared.cmd_opts.device_id is not None:
+        return f"cuda:{shared.cmd_opts.device_id}"
+
+    return "cuda"
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 def get_optimal_device_name():
@@ -108,6 +130,13 @@ def get_optimal_device_name():
         return get_cuda_device_string()
     if has_mps():
         return "mps"
+<<<<<<< HEAD
+=======
+
+    if has_xpu():
+        return xpu_specific.get_xpu_device_string()
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     return "cpu"
 
 
@@ -116,12 +145,17 @@ def get_optimal_device():
 
 
 def get_device_for(task):
+<<<<<<< HEAD
     if task in shared.cmd_opts.use_cpu:
         log.debug(f'Forcing CPU for task: {task}')
+=======
+    if task in shared.cmd_opts.use_cpu or "all" in shared.cmd_opts.use_cpu:
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         return cpu
     return get_optimal_device()
 
 
+<<<<<<< HEAD
 def torch_gc(force=False):
     mem = memstats.memory_stats()
     gpu = mem.get('gpu', {})
@@ -148,8 +182,23 @@ def torch_gc(force=False):
         except Exception:
             pass
     log.debug(f'gc: collected={collected} device={torch.device(get_optimal_device_name())} {memstats.memory_stats()}')
+=======
+def torch_gc():
+
+    if torch.cuda.is_available():
+        with torch.cuda.device(get_cuda_device_string()):
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
+
+    if has_mps():
+        mac_specific.torch_mps_gc()
+
+    if has_xpu():
+        xpu_specific.torch_xpu_gc()
 
 
+<<<<<<< HEAD
 def set_cuda_sync_mode(mode):
     """
     Set the CUDA device synchronization mode: auto, spin, yield or block.
@@ -290,6 +339,32 @@ device = device_interrogate = device_gfpgan = device_esrgan = device_codeformer 
 dtype = torch.float16
 dtype_vae = torch.float16
 dtype_unet = torch.float16
+=======
+def enable_tf32():
+    if torch.cuda.is_available():
+
+        # enabling benchmark option seems to enable a range of cards to do fp16 when they otherwise can't
+        # see https://github.com/AUTOMATIC1111/stable-diffusion-webui/pull/4407
+        device_id = (int(shared.cmd_opts.device_id) if shared.cmd_opts.device_id is not None and shared.cmd_opts.device_id.isdigit() else 0) or torch.cuda.current_device()
+        if torch.cuda.get_device_capability(device_id) == (7, 5) and torch.cuda.get_device_name(device_id).startswith("NVIDIA GeForce GTX 16"):
+            torch.backends.cudnn.benchmark = True
+
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
+
+
+errors.run(enable_tf32, "Enabling TF32")
+
+cpu: torch.device = torch.device("cpu")
+device: torch.device = None
+device_interrogate: torch.device = None
+device_gfpgan: torch.device = None
+device_esrgan: torch.device = None
+device_codeformer: torch.device = None
+dtype: torch.dtype = torch.float16
+dtype_vae: torch.dtype = torch.float16
+dtype_unet: torch.dtype = torch.float16
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 unet_needs_upcast = False
 if args.profile:
     log.info(f'Torch build config: {torch.__config__.show()}')
@@ -304,6 +379,7 @@ def cond_cast_float(tensor):
     return tensor.float() if unet_needs_upcast else tensor
 
 
+<<<<<<< HEAD
 def randn(seed, shape):
     torch.manual_seed(seed)
     if backend == 'ipex':
@@ -317,6 +393,9 @@ def randn_without_seed(shape):
     if device.type == 'mps':
         return torch.randn(shape, device=cpu).to(device)
     return torch.randn(shape, device=device)
+=======
+nv_rng = None
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
 
 def autocast(disable=False):
@@ -348,7 +427,11 @@ class NansException(Exception):
 
 
 def test_for_nans(x, where):
+<<<<<<< HEAD
     if shared.opts.disable_nan_check:
+=======
+    if shared.cmd_opts.disable_nan_check:
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         return
     if not torch.all(torch.isnan(x)).item():
         return
@@ -364,3 +447,20 @@ def test_for_nans(x, where):
         message = "A tensor with all NaNs was produced."
     message += " Use --disable-nan-check commandline argument to disable this check."
     raise NansException(message)
+
+
+@lru_cache
+def first_time_calculation():
+    """
+    just do any calculation with pytorch layers - the first time this is done it allocaltes about 700MB of memory and
+    spends about 2.7 seconds doing that, at least wih NVidia.
+    """
+
+    x = torch.zeros((1, 1)).to(device, dtype)
+    linear = torch.nn.Linear(1, 1).to(device, dtype)
+    linear(x)
+
+    x = torch.zeros((1, 1, 3, 3)).to(device, dtype)
+    conv2d = torch.nn.Conv2d(1, 1, (3, 3)).to(device, dtype)
+    conv2d(x)
+

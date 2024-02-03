@@ -1,14 +1,26 @@
 # The content of this file comes from the ldm/models/autoencoder.py file of the compvis/stable-diffusion repo
 # The VQModel & VQModelInterface were subsequently removed from ldm/models/autoencoder.py when we moved to the stability-ai/stablediffusion repo
 # As the LDSR upscaler relies on VQModel & VQModelInterface, the hijack aims to put them back into the ldm.models.autoencoder
+<<<<<<< HEAD:modules/ldsr/sd_hijack_autoencoder.py
 from contextlib import contextmanager
+=======
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:extensions-builtin/LDSR/sd_hijack_autoencoder.py
 import numpy as np
 import torch
 import pytorch_lightning as pl
 import torch.nn.functional as F
+<<<<<<< HEAD:modules/ldsr/sd_hijack_autoencoder.py
 from torch.optim.lr_scheduler import LambdaLR
 from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
 from ldm.modules.ema import LitEma
+=======
+from contextlib import contextmanager
+
+from torch.optim.lr_scheduler import LambdaLR
+
+from ldm.modules.ema import LitEma
+from vqvae_quantize import VectorQuantizer2 as VectorQuantizer
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e:extensions-builtin/LDSR/sd_hijack_autoencoder.py
 from ldm.modules.diffusionmodules.model import Encoder, Decoder
 from ldm.util import instantiate_from_config
 
@@ -89,8 +101,9 @@ class VQModel(pl.LightningModule):
                     del sd[k]
         missing, unexpected = self.load_state_dict(sd, strict=False)
         print(f"Restored from {path} with {len(missing)} missing and {len(unexpected)} unexpected keys")
-        if len(missing) > 0:
+        if missing:
             print(f"Missing Keys: {missing}")
+        if unexpected:
             print(f"Unexpected Keys: {unexpected}")
 
     def on_train_batch_end(self, *args, **kwargs):

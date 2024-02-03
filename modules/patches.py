@@ -50,6 +50,10 @@ def undo(key, obj, field):
 
     original_func = originals[key].pop(patch_key)
     setattr(obj, field, original_func)
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
     return None
 
 

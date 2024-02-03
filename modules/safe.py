@@ -2,6 +2,13 @@
 
 import pickle
 import collections
+<<<<<<< HEAD
+=======
+
+import torch
+import numpy
+import _codecs
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 import zipfile
 import re
 
@@ -10,8 +17,13 @@ import numpy as np
 import _codecs
 
 # PyTorch 1.13 and later have _TypedStorage renamed to TypedStorage
+<<<<<<< HEAD
 TypedStorage = torch.storage.TypedStorage if hasattr(torch.storage, 'TypedStorage') else torch.storage._TypedStorage # pylint: disable=protected-access
+=======
+from modules import errors
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
 
+TypedStorage = torch.storage.TypedStorage if hasattr(torch.storage, 'TypedStorage') else torch.storage._TypedStorage
 
 def encode(*args):
     out = _codecs.encode(*args)
@@ -23,6 +35,10 @@ class RestrictedUnpickler(pickle.Unpickler):
 
     def persistent_load(self, saved_id):
         assert saved_id[0] == 'storage'
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         try:
             return TypedStorage(_internal=True)
         except TypeError:
@@ -37,7 +53,11 @@ class RestrictedUnpickler(pickle.Unpickler):
         if module == 'collections' and name == 'OrderedDict':
             return getattr(collections, name)
         if module == 'torch._utils' and name in ['_rebuild_tensor_v2', '_rebuild_parameter', '_rebuild_device_tensor_from_numpy']:
+<<<<<<< HEAD
             return getattr(torch._utils, name) # pylint: disable=protected-access
+=======
+            return getattr(torch._utils, name)
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         if module == 'torch' and name in ['FloatStorage', 'HalfStorage', 'IntStorage', 'LongStorage', 'DoubleStorage', 'ByteStorage', 'float32', 'BFloat16Storage']:
             return getattr(torch, name)
         if module == 'torch.nn.modules.container' and name in ['ParameterDict']:
@@ -93,11 +113,15 @@ def check_pt(filename, extra_handler):
 
     except zipfile.BadZipfile:
 
-        # if it's not a zip file, it's an olf pytorch format, with five objects written to pickle
+        # if it's not a zip file, it's an old pytorch format, with five objects written to pickle
         with open(filename, "rb") as file:
             unpickler = RestrictedUnpickler(file)
             unpickler.extra_handler = extra_handler
+<<<<<<< HEAD
             for _i in range(5):
+=======
+            for _ in range(5):
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
                 unpickler.load()
 
 
@@ -132,8 +156,27 @@ def load_with_extra(filename, extra_handler=None, *args, **kwargs): # pylint: di
     try:
         if not shared.cmd_opts.disable_safe_unpickle:
             check_pt(filename, extra_handler)
+<<<<<<< HEAD
     except Exception as e:
         errors.display(e, f'verifying pickled file {filename}')
+=======
+
+    except pickle.UnpicklingError:
+        errors.report(
+            f"Error verifying pickled file from {filename}\n"
+            "-----> !!!! The file is most likely corrupted !!!! <-----\n"
+            "You can skip this check with --disable-safe-unpickle commandline argument, but that is not going to help you.\n\n",
+            exc_info=True,
+        )
+        return None
+    except Exception:
+        errors.report(
+            f"Error verifying pickled file from {filename}\n"
+            f"The file may be malicious, so the program is not going to read it.\n"
+            f"You can skip this check with --disable-safe-unpickle commandline argument.\n\n",
+            exc_info=True,
+        )
+>>>>>>> cf2772fab0af5573da775e7437e6acdca424f26e
         return None
 
     return unsafe_torch_load(filename, *args, **kwargs)
